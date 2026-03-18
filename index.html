@@ -167,19 +167,19 @@
         let realTimeInterval = null;
         let customStatuses = JSON.parse(localStorage.getItem('customStatuses') || '[]');
         
+        // 新增：记录当前会话的日期，用于检测跨天
+        let sessionDateStr = ''; 
+        
         const BACKGROUND_START_KEY = 'bgStartTime';
         const BACKGROUND_STATUS_KEY = 'bgStatus';
-        const BACKGROUND_SPLIT_KEY = 'bgSplitTime'; // 新增：记录上次分割的时间点，防止重复保存
+        const BACKGROUND_DATE_KEY = 'bgSessionDate'; // 新增：持久化会话日期
 
         function init() {
             loadCustomStatuses();
             updateStatusButtons();
-            
-            // 【核心修改】恢复后台状态，但不重置计时器
             recoverBackgroundState();
-            
             startRealTimeClock();
-            startTimer(); // 启动计时器，它会立即计算正确时间
+            startTimer();
             registerServiceWorker();
             
             const now = new Date();
@@ -189,27 +189,49 @@
             document.getElementById('startTime').value = start.toISOString().slice(0,16);
         }
 
-        // 【核心修改】恢复逻辑：只恢复变量，不保存旧记录（除非跨越了天或手动停止）
+        function getTodayDateString() {
+            const now = new Date();
+            return `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+        }
+
         function recoverBackgroundState() {
             const bgStart = localStorage.getItem(BACKGROUND_START_KEY);
             const bgStatus = localStorage.getItem(BACKGROUND_STATUS_KEY);
+            const bgDate = localStorage.getItem(BACKGROUND_DATE_KEY);
+            const todayStr = getTodayDateString();
             
             if (bgStart && bgStatus) {
                 const startObj = new Date(bgStart);
-                const now = new Date();
                 
-                // 恢复全局变量，让计时器接着走
-                currentStatus = bgStatus;
-                startTime = startObj; // 关键点：保持原始开始时间，不改为 now
-                
+                // 【核心逻辑】检查是否跨天
+                if (bgDate !== todayStr) {
+                    // 情况 A: 跨天了 (例如昨天开始的任务，今天才打开)
+                    // 1. 保存昨天的记录 (截止到昨天 23:59:59.999)
+                    const yesterdayEnd = new Date(startObj);
+                    yesterdayEnd.setHours(23, 59, 59, 999);
+                    // 如果昨天结束时间晚于开始时间，才保存
+                    if (yesterdayEnd > startObj) {
+                         saveRecord(bgStatus, startObj, yesterdayEnd);
+                    }
+                    
+                    // 2. 开启今天的记录 (从今天 00:00:00 开始)
+                    const todayStart = new Date(todayStr + 'T00:00:00');
+                    startTime = todayStart;
+                    currentStatus = bgStatus;
+                    console.log(`检测到跨天：已保存昨日记录，并开启今日 ${currentStatus} 记录`);
+                } else {
+                    // 情况 B: 同一天，只是后台被杀
+                    // 直接恢复，保持连续性
+                    startTime = startObj;
+                    currentStatus = bgStatus;
+                    console.log(`恢复同一天状态：${currentStatus}`);
+                }
+
+                sessionDateStr = todayStr;
                 document.getElementById('currentStatus').textContent = currentStatus;
                 highlightStatus(currentStatus);
-                
-                // 注意：这里我们 NOT 调用 saveRecord。
-                // 因为用户只是切到了后台又回来，我们希望时间是连续的。
-                // 只有当用户主动点击“切换状态”或者第二天打开时，才应该分割记录。
-                
-                console.log(`恢复后台状态：${currentStatus}，从 ${startTime.toLocaleTimeString()} 开始`);
+            } else {
+                sessionDateStr = todayStr;
             }
         }
 
@@ -236,18 +258,52 @@
 
         function startTimer() {
             if (timerInterval) clearInterval(timerInterval);
-            
-            // 立即执行一次，避免 1 秒延迟
             updateTimerDisplay();
             
             timerInterval = setInterval(() => {
+                const now = new Date();
+                const currentStr = getTodayDateString();
+                
+                // 【核心逻辑】运行时跨天检测
+                if (sessionDateStr && currentStr !== sessionDateStr) {
+                    handleDayChange(now);
+                }
+                
                 updateTimerDisplay();
-                // 持续持久化开始时间，防止极端情况下丢失
+                
                 if(startTime && currentStatus) {
                     localStorage.setItem(BACKGROUND_START_KEY, startTime.toISOString());
                     localStorage.setItem(BACKGROUND_STATUS_KEY, currentStatus);
+                    localStorage.setItem(BACKGROUND_DATE_KEY, sessionDateStr);
                 }
             }, 1000);
+        }
+
+        // 处理跨天逻辑
+        function handleDayChange(now) {
+            if (!startTime || !currentStatus) return;
+            
+            // 1. 保存旧记录 (截止到昨天的最后一毫秒)
+            const yesterdayEnd = new Date(startTime);
+            // 简单方法：将当前时间设为当天的 00:00:00，然后减 1 毫秒，就是昨天的结束
+            const endOfYesterday = new Date(now);
+            endOfYesterday.setHours(0, 0, 0, 0);
+            endOfYesterday.setMilliseconds(-1);
+            
+            if (endOfYesterday > startTime) {
+                saveRecord(currentStatus, startTime, endOfYesterday);
+            }
+            
+            // 2. 开启新记录 (从今天 00:00:00 开始)
+            const startOfToday = new Date(now);
+            startOfToday.setHours(0, 0, 0, 0);
+            startTime = startOfToday;
+            sessionDateStr = getTodayDateString();
+            
+            console.log(`自动跨天切割：昨日记录已保存，今日记录已开始`);
+            
+            // 刷新列表，因为多了一条昨天的记录
+            loadTodayRecords(); 
         }
 
         function updateTimerDisplay() {
@@ -267,13 +323,13 @@
         }
 
         function changeStatus(status) {
-            // 切换状态时，必须保存上一段记录
             if (startTime && currentStatus) {
                 saveRecord(currentStatus, startTime, new Date());
             }
             
             currentStatus = status;
-            startTime = new Date(); // 新状态从此刻开始
+            startTime = new Date();
+            sessionDateStr = getTodayDateString();
             
             document.getElementById('currentStatus').textContent = status;
             document.getElementById('timer').textContent = '00:00:00';
@@ -282,6 +338,7 @@
             
             localStorage.setItem(BACKGROUND_START_KEY, startTime.toISOString());
             localStorage.setItem(BACKGROUND_STATUS_KEY, currentStatus);
+            localStorage.setItem(BACKGROUND_DATE_KEY, sessionDateStr);
         }
 
         function saveRecord(status, start, end) {
@@ -364,110 +421,4 @@
                 localStorage.setItem('customStatuses', JSON.stringify(customStatuses));
                 createCustomButton(val);
                 updateStatusButtons();
-                input.value = '';
-                toggleCustomInput();
-            } else if (customStatuses.includes(val)) {
-                alert('该状态已存在');
-            }
-        }
-
-        function createCustomButton(name) {
-            const btn = document.createElement('button');
-            btn.className = 'status-btn custom';
-            btn.textContent = name;
-            btn.onclick = () => changeStatus(name);
-            const customBtn = document.querySelector('.status-btn[onclick="toggleCustomInput()"]');
-            document.querySelector('.status-buttons').insertBefore(btn, customBtn);
-        }
-
-        function loadCustomStatuses() {
-            customStatuses.forEach(createCustomButton);
-        }
-
-        function toggleCustomInput() {
-            const el = document.getElementById('customInput');
-            el.style.display = el.style.display === 'none' ? 'block' : 'none';
-            if(el.style.display === 'block') document.getElementById('customStatus').focus();
-        }
-
-        function updateStatusButtons() {
-            const sel = document.getElementById('statusSelect');
-            sel.innerHTML = '<option value="">选择状态</option>';
-            ['工作','休息','运动','社交','学习',...customStatuses].forEach(s => {
-                const op = document.createElement('option');
-                op.value = s; op.textContent = s;
-                sel.appendChild(op);
-            });
-        }
-
-        document.getElementById('manualForm').addEventListener('submit', function(e){
-            e.preventDefault();
-            const sVal = document.getElementById('startTime').value;
-            const eVal = document.getElementById('endTime').value;
-            const st = document.getElementById('statusSelect').value;
-            
-            if(!sVal || !eVal || !st) { alert('请填写完整信息'); return; }
-            
-            const s = new Date(sVal);
-            const en = new Date(eVal);
-            
-            if(s >= en) { alert('结束时间必须晚于开始时间'); return; }
-            
-            timeRecords.push({status:st, start:s.toISOString(), end:en.toISOString(), duration:(en-s)/1000});
-            localStorage.setItem('timeRecords', JSON.stringify(timeRecords));
-            loadTodayRecords();
-            this.reset();
-            alert('添加成功！');
-            const now = new Date();
-            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-            document.getElementById('endTime').value = now.toISOString().slice(0,16);
-        });
-
-        function switchView(viewName) {
-            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tool-btn').forEach(el => el.classList.remove('active'));
-            document.getElementById(`view-${viewName}`).classList.add('active');
-            document.getElementById(`nav-${viewName}`).classList.add('active');
-            if(viewName === 'history') loadTodayRecords();
-        }
-
-        function exportToCSV() {
-            if (timeRecords.length === 0) { alert('暂无数据可导出'); return; }
-            let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; 
-            csvContent += "状态,开始时间,结束时间,持续时长(秒),持续时长(格式化)\n";
-            const sortedRecords = [...timeRecords].sort((a, b) => new Date(a.start) - new Date(b.start));
-            sortedRecords.forEach(function(row) {
-                const startDate = new Date(row.start);
-                const endDate = new Date(row.end);
-                const formatTime = (date) => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')} ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}:${String(date.getSeconds()).padStart(2,'0')}`;
-                const rowStr = [`"${row.status}"`, formatTime(startDate), formatTime(endDate), row.duration, formatDuration(Math.floor(row.duration))].join(",");
-                csvContent += rowStr + "\n";
-            });
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            const dateStr = new Date().toISOString().slice(0,10).replace(/-/g,"");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `时间记录_${dateStr}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
-
-        window.onload = init;
-
-        function registerServiceWorker() {
-            if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('sw.js').then(r=>console.log('SW OK')).catch(e=>console.error(e));
-            }
-        }
-
-        // 离开页面时，我们依然保存状态，但不保存记录（为了保持连续性）
-        window.addEventListener('beforeunload', () => {
-            if(startTime && currentStatus) {
-                localStorage.setItem(BACKGROUND_START_KEY, startTime.toISOString());
-                localStorage.setItem(BACKGROUND_STATUS_KEY, currentStatus);
-            }
-        });
-    </script>
-</body>
-</html>
+                input.value
