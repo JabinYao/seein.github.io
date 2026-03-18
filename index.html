@@ -3,20 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>时间追踪器</title>
+    <title>时间追踪器 Pro</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#4F46E5">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <style>
-        :root { --primary: #4F46E5; --bg: #F3F4F6; --card-bg: #FFFFFF; --text: #1F2937; --text-light: #6B7280; --danger: #EF4444; --success: #10B981; }
+        :root { --primary: #4F46E5; --bg: #F3F4F6; --card-bg: #FFFFFF; --text: #1F2937; --text-light: #6B7280; --danger: #EF4444; --success: #10B981; --warning: #F59E0B; }
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        .header { background: var(--primary); color: white; padding: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 10; }
+        .header { background: var(--primary); color: white; padding: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 10; position: relative; }
         .real-time { font-size: 2.5rem; font-weight: 700; letter-spacing: 2px; font-variant-numeric: tabular-nums; }
         .date { font-size: 0.9rem; opacity: 0.9; margin-top: 5px; }
-        
+        .settings-btn { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); border: none; color: white; width: 36px; height: 36px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .settings-btn:active { background: rgba(255,255,255,0.4); }
+
         .container { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 80px; }
         
         .status-card { background: var(--card-bg); border-radius: 16px; padding: 25px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
@@ -25,11 +27,13 @@
         .timer { font-size: 3.5rem; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--text); margin-bottom: 25px; font-feature-settings: "tnum"; }
         
         .status-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 15px; }
-        .status-btn { background: white; border: 2px solid #E5E7EB; color: var(--text); padding: 15px 5px; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; touch-action: manipulation; }
+        .status-btn { background: white; border: 2px solid #E5E7EB; color: var(--text); padding: 15px 5px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; touch-action: manipulation; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 70px; }
         .status-btn:active { transform: scale(0.95); }
         .status-btn.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); }
         .status-btn.custom { background: #FFF7ED; border-color: #FDBA74; color: #C2410C; }
         .status-btn.custom.active { background: #C2410C; color: white; border-color: #C2410C; }
+        .btn-manage { grid-column: span 3; background: #F9FAFB; border: 1px dashed #D1D5DB; color: var(--text-light); font-size: 0.85rem; padding: 10px; margin-top: 5px; }
+        .btn-manage:active { background: #E5E7EB; }
 
         .custom-input-container { display: none; margin-top: 15px; animation: slideDown 0.3s ease; }
         @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
@@ -71,6 +75,23 @@
 
         .view-section { display: none; }
         .view-section.active { display: block; }
+
+        /* 标签管理模态框 */
+        .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 100; display: none; align-items: center; justify-content: center; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: white; width: 90%; max-width: 400px; border-radius: 16px; padding: 20px; max-height: 80vh; overflow-y: auto; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .modal-title { font-size: 1.2rem; font-weight: 700; }
+        .close-modal { background: none; border: none; font-size: 1.5rem; color: var(--text-light); cursor: pointer; }
+        .tag-list { display: flex; flex-direction: column; gap: 10px; }
+        .tag-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #F9FAFB; border-radius: 8px; border: 1px solid #E5E7EB; }
+        .tag-item input { border: none; background: transparent; font-weight: 600; color: var(--text); width: 70%; padding: 5px; }
+        .tag-item input:focus { border-bottom: 1px solid var(--primary); outline: none; }
+        .tag-actions { display: flex; gap: 5px; }
+        .btn-tag-action { padding: 5px 10px; border-radius: 6px; border: none; font-size: 0.8rem; cursor: pointer; }
+        .btn-save-tag { background: var(--success); color: white; }
+        .btn-del-tag { background: var(--danger); color: white; }
+        .btn-cancel-tag { background: #E5E7EB; color: var(--text); }
         
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -80,6 +101,7 @@
 <body>
 
     <div class="header">
+        <button class="settings-btn" onclick="openTagManager()">⚙️</button>
         <div class="real-time" id="realTime">00:00:00</div>
         <div class="date" id="currentDate">加载中...</div>
     </div>
@@ -92,20 +114,9 @@
                 <div class="timer" id="timer">00:00:00</div>
                 
                 <div class="status-buttons" id="statusButtons">
-                    <button class="status-btn" onclick="changeStatus('工作')">工作</button>
-                    <button class="status-btn" onclick="changeStatus('休息')">休息</button>
-                    <button class="status-btn" onclick="changeStatus('运动')">运动</button>
-                    <button class="status-btn" onclick="changeStatus('社交')">社交</button>
-                    <button class="status-btn" onclick="changeStatus('学习')">学习</button>
-                    <button class="status-btn" style="border-style: dashed; color: var(--text-light);" onclick="toggleCustomInput()">+ 自定义</button>
+                    <!-- 按钮由 JS 动态生成 -->
                 </div>
-
-                <div class="custom-input-container" id="customInput">
-                    <div class="input-group">
-                        <input type="text" id="customStatus" placeholder="输入状态名称...">
-                        <button class="btn-add" onclick="addCustomStatus()">添加</button>
-                    </div>
-                </div>
+                <button class="status-btn btn-manage" onclick="openTagManager()">✏️ 管理状态标签</button>
             </div>
 
             <div class="card">
@@ -159,11 +170,30 @@
         <button class="tool-btn" onclick="switchView('history')" id="nav-history">📋</button>
     </div>
 
+    <!-- 标签管理模态框 -->
+    <div class="modal-overlay" id="tagModal">
+        <div class="modal">
+            <div class="modal-header">
+                <div class="modal-title">管理状态标签</div>
+                <button class="close-modal" onclick="closeTagManager()">&times;</button>
+            </div>
+            <p style="font-size: 0.85rem; color: var(--text-light); margin-bottom: 15px;">
+                💡 提示：修改标签名仅影响<b>未来</b>的记录。已保存的历史数据将保留原名，以确保统计准确。
+            </p>
+            <div class="tag-list" id="tagListContainer">
+                <!-- 标签列表由 JS 生成 -->
+            </div>
+            <div style="margin-top: 20px; display: flex; gap: 10px;">
+                <input type="text" id="newTagName" placeholder="新标签名称..." style="flex:1;">
+                <button class="btn-add" onclick="addNewTagFromManager()">添加</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // 全局错误捕获，防止脚本报错导致页面无反应
+        // 全局错误捕获
         window.onerror = function(msg, url, line) {
             console.error("Global Error:", msg, "Line:", line);
-            alert("发生错误：" + msg + "\n请尝试清除缓存后重试。");
             return true;
         };
 
@@ -172,7 +202,13 @@
         let timeRecords = JSON.parse(localStorage.getItem('timeRecords') || '[]');
         let timerInterval = null;
         let realTimeInterval = null;
-        let customStatuses = JSON.parse(localStorage.getItem('customStatuses') || '[]');
+        
+        // 默认标签定义 (作为初始模板，一旦用户自定义后，以 localStorage 为准)
+        const DEFAULT_TAGS = ['工作', '休息', '运动', '社交', '学习'];
+        
+        // 加载用户自定义的标签列表 (包含重命名后的名字)
+        let statusTags = JSON.parse(localStorage.getItem('statusTags') || JSON.stringify(DEFAULT_TAGS));
+        
         let sessionDateStr = ''; 
         
         const BACKGROUND_START_KEY = 'bgStartTime';
@@ -180,29 +216,23 @@
         const BACKGROUND_DATE_KEY = 'bgSessionDate';
 
         function init() {
-            try {
-                loadCustomStatuses();
-                updateStatusButtons();
-                recoverBackgroundState();
-                startRealTimeClock();
-                startTimer();
-                registerServiceWorker();
-                
-                const now = new Date();
-                now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-                const endTimeInput = document.getElementById('endTime');
-                const startTimeInput = document.getElementById('startTime');
-                if(endTimeInput) endTimeInput.value = now.toISOString().slice(0,16);
-                if(startTimeInput) {
-                    const start = new Date(now.getTime() - 3600000);
-                    startTimeInput.value = start.toISOString().slice(0,16);
-                }
-                
-                console.log("App initialized successfully.");
-            } catch (e) {
-                console.error("Init error:", e);
-                alert("初始化失败：" + e.message);
+            renderStatusButtons();
+            updateStatusSelectOptions();
+            recoverBackgroundState();
+            startRealTimeClock();
+            startTimer();
+            registerServiceWorker();
+            
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            const endTimeInput = document.getElementById('endTime');
+            const startTimeInput = document.getElementById('startTime');
+            if(endTimeInput) endTimeInput.value = now.toISOString().slice(0,16);
+            if(startTimeInput) {
+                const start = new Date(now.getTime() - 3600000);
+                startTimeInput.value = start.toISOString().slice(0,16);
             }
+            console.log("App initialized with tags:", statusTags);
         }
 
         function getTodayDateString() {
@@ -218,27 +248,20 @@
             
             if (bgStart && bgStatus) {
                 const startObj = new Date(bgStart);
-                sessionDateStr = todayStr; // 默认设为今天
+                sessionDateStr = todayStr; 
                 
-                // 跨天检测
                 if (bgDate && bgDate !== todayStr) {
-                    // 跨天了
                     const endOfYesterday = new Date(startObj);
                     endOfYesterday.setHours(23, 59, 59, 999);
-                    
                     if (endOfYesterday > startObj) {
                          saveRecord(bgStatus, startObj, endOfYesterday);
                     }
-                    
                     const todayStart = new Date(todayStr + 'T00:00:00');
                     startTime = todayStart;
                     currentStatus = bgStatus;
-                    console.log("Cross-day detected. Record saved and reset.");
                 } else {
-                    // 同一天
                     startTime = startObj;
                     currentStatus = bgStatus;
-                    console.log("Resumed same-day session.");
                 }
 
                 const statusEl = document.getElementById('currentStatus');
@@ -250,14 +273,11 @@
         }
 
         function highlightStatus(status) {
-             const btns = document.querySelectorAll('.status-btn');
-             btns.forEach(btn => btn.classList.remove('active'));
-             for(let btn of btns) {
-                 if(btn.textContent.trim() === status) {
-                     btn.classList.add('active');
-                     break;
-                 }
-             }
+             const btns = document.querySelectorAll('.status-btn[data-status]');
+             btns.forEach(btn => {
+                 if(btn.dataset.status === status) btn.classList.add('active');
+                 else btn.classList.remove('active');
+             });
         }
 
         function startRealTimeClock() {
@@ -280,50 +300,37 @@
                 try {
                     const now = new Date();
                     const currentStr = getTodayDateString();
-                    
-                    // 运行时跨天检测
                     if (sessionDateStr && currentStr !== sessionDateStr) {
                         handleDayChange(now);
                     }
-                    
                     updateTimerDisplay();
-                    
                     if(startTime && currentStatus) {
                         localStorage.setItem(BACKGROUND_START_KEY, startTime.toISOString());
                         localStorage.setItem(BACKGROUND_STATUS_KEY, currentStatus);
                         localStorage.setItem(BACKGROUND_DATE_KEY, sessionDateStr);
                     }
-                } catch (e) {
-                    console.error("Timer loop error:", e);
-                }
+                } catch (e) { console.error("Timer loop error:", e); }
             }, 1000);
         }
 
         function handleDayChange(now) {
             if (!startTime || !currentStatus) return;
-            
             const endOfYesterday = new Date(now);
             endOfYesterday.setHours(0, 0, 0, 0);
             endOfYesterday.setMilliseconds(-1);
-            
             if (endOfYesterday > startTime) {
                 saveRecord(currentStatus, startTime, endOfYesterday);
             }
-            
             const startOfToday = new Date(now);
             startOfToday.setHours(0, 0, 0, 0);
             startTime = startOfToday;
             sessionDateStr = getTodayDateString();
-            
             console.log("Auto day change handled.");
-            // 注意：这里不调用 loadTodayRecords() 以免在定时器中频繁操作DOM引起卡顿或错误
-            // 数据已保存，用户切换视图或下次交互时会刷新
         }
 
         function updateTimerDisplay() {
             const timerEl = document.getElementById('timer');
             if (!timerEl) return;
-            
             if (!startTime || !currentStatus) {
                 timerEl.textContent = '00:00:00';
                 return;
@@ -339,44 +346,63 @@
             return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
         }
 
-        // 暴露给全局 scope 以便 onclick 调用
+        // 渲染主界面按钮
+        function renderStatusButtons() {
+            const container = document.getElementById('statusButtons');
+            if(!container) return;
+            // 保留最后的“管理”按钮，先清空其他
+            const manageBtn = container.querySelector('.btn-manage');
+            container.innerHTML = '';
+            
+            statusTags.forEach(tag => {
+                const btn = document.createElement('button');
+                btn.className = 'status-btn';
+                // 简单的判断：如果是默认集里的可能是内置，这里统一视为可点击，样式靠 JS 控制 active
+                btn.dataset.status = tag;
+                btn.textContent = tag;
+                btn.onclick = () => changeStatus(tag);
+                container.appendChild(btn);
+            });
+            if(manageBtn) container.appendChild(manageBtn);
+        }
+
+        // 更新下拉菜单
+        function updateStatusSelectOptions() {
+            const sel = document.getElementById('statusSelect');
+            if(!sel) return;
+            sel.innerHTML = '<option value="">选择状态</option>';
+            statusTags.forEach(s => {
+                const op = document.createElement('option');
+                op.value = s; op.textContent = s;
+                sel.appendChild(op);
+            });
+        }
+
         window.changeStatus = function(status) {
             try {
                 if (startTime && currentStatus) {
                     saveRecord(currentStatus, startTime, new Date());
                 }
-                
                 currentStatus = status;
                 startTime = new Date();
                 sessionDateStr = getTodayDateString();
                 
                 const statusEl = document.getElementById('currentStatus');
                 const timerEl = document.getElementById('timer');
-                
                 if(statusEl) statusEl.textContent = status;
                 if(timerEl) timerEl.textContent = '00:00:00';
                 
                 highlightStatus(status);
-                
                 localStorage.setItem(BACKGROUND_START_KEY, startTime.toISOString());
                 localStorage.setItem(BACKGROUND_STATUS_KEY, currentStatus);
                 localStorage.setItem(BACKGROUND_DATE_KEY, sessionDateStr);
-                
-                loadTodayRecords(); // 更新统计
-            } catch (e) {
-                console.error("Change status error:", e);
-                alert("切换状态失败：" + e.message);
-            }
+                loadTodayRecords();
+            } catch (e) { console.error("Change status error:", e); alert("切换失败"); }
         };
 
         function saveRecord(status, start, end) {
             if (end <= start) return;
-            const record = {
-                status: status,
-                start: start.toISOString(),
-                end: end.toISOString(),
-                duration: (end - start) / 1000
-            };
+            const record = { status, start: start.toISOString(), end: end.toISOString(), duration: (end - start) / 1000 };
             timeRecords.push(record);
             localStorage.setItem('timeRecords', JSON.stringify(timeRecords));
             loadTodayRecords();
@@ -388,15 +414,12 @@
                 const todayRecords = timeRecords.filter(r => new Date(r.start) >= today);
                 updateSummary(todayRecords);
                 updateHistory(todayRecords);
-            } catch (e) {
-                console.error("Load records error:", e);
-            }
+            } catch (e) { console.error("Load records error:", e); }
         }
 
         function updateSummary(records) {
             const summaryBody = document.getElementById('summaryBody');
             if (!summaryBody) return;
-            
             summaryBody.innerHTML = '';
             if (records.length === 0) {
                 summaryBody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #999; padding: 20px;">暂无数据</td></tr>';
@@ -418,7 +441,6 @@
         function updateHistory(records) {
             const list = document.getElementById('historyList');
             if (!list) return;
-
             list.innerHTML = '';
             if (records.length === 0) {
                 list.innerHTML = '<li style="text-align:center;color:#999;padding:20px;">暂无记录</li>';
@@ -429,7 +451,6 @@
                 li.className = 'history-item';
                 const s = new Date(r.start), e = new Date(r.end);
                 const timeStr = `${s.getHours().toString().padStart(2,'0')}:${s.getMinutes().toString().padStart(2,'0')} - ${e.getHours().toString().padStart(2,'0')}:${e.getMinutes().toString().padStart(2,'0')}`;
-                
                 li.innerHTML = `
                     <div class="history-info">
                         <div class="history-time">${timeStr} <span style="font-weight:normal; color:#666;">(${formatDuration(Math.floor(r.duration))})</span></div>
@@ -449,69 +470,92 @@
             }
         };
 
-        window.addCustomStatus = function() {
-            const input = document.getElementById('customStatus');
+        // --- 标签管理逻辑 ---
+
+        window.openTagManager = function() {
+            const modal = document.getElementById('tagModal');
+            const container = document.getElementById('tagListContainer');
+            if(!modal || !container) return;
+            
+            container.innerHTML = '';
+            statusTags.forEach((tag, index) => {
+                const item = document.createElement('div');
+                item.className = 'tag-item';
+                // 默认前5个不允许删除（可选逻辑，这里设定为都可以删除，但给个提示）
+                const isDefault = index < 5; 
+                
+                item.innerHTML = `
+                    <input type="text" value="${tag}" id="tag-input-${index}" ${isDefault ? 'placeholder="内置标签"' : ''}>
+                    <div class="tag-actions">
+                        <button class="btn-tag-action btn-save-tag" onclick="saveTagChange(${index})">保存</button>
+                        ${!isDefault ? `<button class="btn-tag-action btn-del-tag" onclick="deleteTag(${index})">删除</button>` : ''}
+                    </div>
+                `;
+                container.appendChild(item);
+            });
+            
+            modal.classList.add('active');
+        };
+
+        window.closeTagManager = function() {
+            document.getElementById('tagModal').classList.remove('active');
+            // 关闭时重新渲染主界面，确保显示最新名字
+            renderStatusButtons();
+            updateStatusSelectOptions();
+        };
+
+        window.saveTagChange = function(index) {
+            const input = document.getElementById(`tag-input-${index}`);
+            if(!input) return;
+            const newVal = input.value.trim();
+            if(!newVal) { alert("标签名不能为空"); return; }
+            
+            // 更新数组
+            statusTags[index] = newVal;
+            localStorage.setItem('statusTags', JSON.stringify(statusTags));
+            
+            alert("标签已更新！\n注意：历史数据中的旧名称不会改变，新记录将使用新名称。");
+            
+            // 如果当前正在使用的状态名被改了，同步更新当前状态显示（可选体验优化）
+            // 这里我们选择不自动改当前 running 的状态名，以免打断计时逻辑，
+            // 或者您可以选择：如果 currentStatus 等于旧名字，则更新为 newVal
+            // 为了简单和安全，我们只在下次点击时生效，或者手动刷新
+            renderStatusButtons();
+            updateStatusSelectOptions();
+        };
+
+        window.deleteTag = function(index) {
+            if(confirm("确定删除此标签吗？\n删除后该标签将从按钮列表移除，但历史数据保留。")) {
+                statusTags.splice(index, 1);
+                localStorage.setItem('statusTags', JSON.stringify(statusTags));
+                openTagManager(); // 重新渲染列表
+                renderStatusButtons();
+                updateStatusSelectOptions();
+            }
+        };
+
+        window.addNewTagFromManager = function() {
+            const input = document.getElementById('newTagName');
             if(!input) return;
             const val = input.value.trim();
-            if(val && !customStatuses.includes(val)) {
-                customStatuses.push(val);
-                localStorage.setItem('customStatuses', JSON.stringify(customStatuses));
-                createCustomButton(val);
-                updateStatusButtons();
-                input.value = '';
-                toggleCustomInput();
-            } else if (customStatuses.includes(val)) {
-                alert('该状态已存在');
-            }
+            if(!val) return;
+            if(statusTags.includes(val)) { alert("已存在该标签"); return; }
+            
+            statusTags.push(val);
+            localStorage.setItem('statusTags', JSON.stringify(statusTags));
+            input.value = '';
+            openTagManager();
+            renderStatusButtons();
+            updateStatusSelectOptions();
         };
-
-        function createCustomButton(name) {
-            const btn = document.createElement('button');
-            btn.className = 'status-btn custom';
-            btn.textContent = name;
-            btn.onclick = () => changeStatus(name);
-            const container = document.querySelector('.status-buttons');
-            const customBtn = document.querySelector('.status-btn[onclick="toggleCustomInput()"]');
-            if(container && customBtn) {
-                container.insertBefore(btn, customBtn);
-            }
-        }
-
-        function loadCustomStatuses() {
-            customStatuses.forEach(createCustomButton);
-        }
-
-        window.toggleCustomInput = function() {
-            const el = document.getElementById('customInput');
-            if(!el) return;
-            el.style.display = el.style.display === 'none' ? 'block' : 'none';
-            if(el.style.display === 'block') {
-                const input = document.getElementById('customStatus');
-                if(input) input.focus();
-            }
-        };
-
-        function updateStatusButtons() {
-            const sel = document.getElementById('statusSelect');
-            if(!sel) return;
-            sel.innerHTML = '<option value="">选择状态</option>';
-            ['工作','休息','运动','社交','学习',...customStatuses].forEach(s => {
-                const op = document.createElement('option');
-                op.value = s; op.textContent = s;
-                sel.appendChild(op);
-            });
-        }
 
         window.switchView = function(viewName) {
             document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tool-btn').forEach(el => el.classList.remove('active'));
-            
             const viewEl = document.getElementById(`view-${viewName}`);
             const navEl = document.getElementById(`nav-${viewName}`);
-            
             if(viewEl) viewEl.classList.add('active');
             if(navEl) navEl.classList.add('active');
-            
             if(viewName === 'history') loadTodayRecords();
         };
 
@@ -537,7 +581,6 @@
             document.body.removeChild(link);
         };
 
-        // 手动表单提交
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('manualForm');
             if(form) {
@@ -546,14 +589,10 @@
                     const sVal = document.getElementById('startTime').value;
                     const eVal = document.getElementById('endTime').value;
                     const st = document.getElementById('statusSelect').value;
-                    
                     if(!sVal || !eVal || !st) { alert('请填写完整信息'); return; }
-                    
                     const s = new Date(sVal);
                     const en = new Date(eVal);
-                    
                     if(s >= en) { alert('结束时间必须晚于开始时间'); return; }
-                    
                     timeRecords.push({status:st, start:s.toISOString(), end:en.toISOString(), duration:(en-s)/1000});
                     localStorage.setItem('timeRecords', JSON.stringify(timeRecords));
                     loadTodayRecords();
