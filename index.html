@@ -1,634 +1,473 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>时间追踪器</title>
-    
-    <!-- PWA关键标签 -->
     <link rel="manifest" href="manifest.json">
-    <meta name="theme-color" content="#3498db">
-    <meta name="description" content="个人时间使用情况追踪工具">
-    
-    <!-- Apple设备兼容性 -->
-    <meta name="apple-mobile-web-app-title" content="时间追踪器">
+    <meta name="theme-color" content="#4F46E5">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    
-    <!-- 图标 -->
-    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-    <link rel="apple-touch-icon" href="icon-192.png">
-    
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f5f5f5;
-        }
+        :root { --primary: #4F46E5; --bg: #F3F4F6; --card-bg: #FFFFFF; --text: #1F2937; --text-light: #6B7280; --danger: #EF4444; --success: #10B981; }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        .container {
-            max-width: 100%;
-            height: 100vh;
-            overflow-y: auto;
-            background: white;
-            display: flex;
-            flex-direction: column;
-        }
+        .header { background: var(--primary); color: white; padding: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 10; }
+        .real-time { font-size: 2.5rem; font-weight: 700; letter-spacing: 2px; font-variant-numeric: tabular-nums; }
+        .date { font-size: 0.9rem; opacity: 0.9; margin-top: 5px; }
         
-        .header {
-            background: linear-gradient(135deg, #3498db, #2c3e50);
-            color: white;
-            padding: 15px;
-            text-align: center;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
+        .container { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 80px; }
         
-        h1 {
-            margin: 0;
-            font-size: 1.4em;
-        }
+        .status-card { background: var(--card-bg); border-radius: 16px; padding: 25px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .current-status-label { font-size: 0.9rem; color: var(--text-light); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
+        .current-status { font-size: 1.8rem; font-weight: 700; color: var(--primary); margin-bottom: 15px; min-height: 40px; }
+        .timer { font-size: 3.5rem; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--text); margin-bottom: 25px; font-feature-settings: "tnum"; }
         
-        .real-time {
-            text-align: center;
-            font-size: 0.9em;
-            margin-top: 5px;
-            opacity: 0.9;
-        }
+        .status-buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 15px; }
+        .status-btn { background: white; border: 2px solid #E5E7EB; color: var(--text); padding: 15px 5px; border-radius: 12px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.2s; touch-action: manipulation; }
+        .status-btn:active { transform: scale(0.95); }
+        .status-btn.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); }
+        .status-btn.custom { background: #FFF7ED; border-color: #FDBA74; color: #C2410C; }
+        .status-btn.custom.active { background: #C2410C; color: white; border-color: #C2410C; }
+
+        .custom-input-container { display: none; margin-top: 15px; animation: slideDown 0.3s ease; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .input-group { display: flex; gap: 10px; }
+        input[type="text"] { flex: 1; padding: 12px; border: 2px solid #E5E7EB; border-radius: 8px; font-size: 1rem; outline: none; }
+        input[type="text"]:focus { border-color: var(--primary); }
+        .btn-add { background: var(--primary); color: white; border: none; padding: 0 20px; border-radius: 8px; font-weight: 600; cursor: pointer; }
         
-        .current-status {
-            text-align: center;
-            font-size: 1.2em;
-            margin: 10px 0;
-            padding: 10px;
-            background: #e8f4fd;
-            border-radius: 8px;
-            font-weight: bold;
-            color: #2980b9;
-        }
+        .card { background: var(--card-bg); border-radius: 16px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #F3F4F6; padding-bottom: 10px; }
+        .card-header h2 { font-size: 1.2rem; color: var(--text); margin: 0; }
+        .btn-export { background: var(--success); color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+        .btn-export:active { opacity: 0.8; }
+
+        .summary-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        .summary-table th { text-align: left; color: var(--text-light); font-weight: 500; padding: 8px 0; border-bottom: 2px solid #F3F4F6; }
+        .summary-table td { padding: 10px 0; border-bottom: 1px solid #F9FAFB; }
+        .summary-table tr:last-child td { border-bottom: none; }
+        .text-right { text-align: right; }
+        .font-bold { font-weight: 700; color: var(--primary); }
+
+        .history-list { list-style: none; max-height: 300px; overflow-y: auto; }
+        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #F3F4F6; font-size: 0.9rem; }
+        .history-item:last-child { border-bottom: none; }
+        .history-info { flex: 1; }
+        .history-time { font-weight: 600; color: var(--text); }
+        .history-status { color: var(--text-light); font-size: 0.85rem; margin-top: 2px; }
+        .delete-btn { background: none; border: none; color: var(--danger); font-size: 1.2rem; cursor: pointer; padding: 5px 10px; opacity: 0.6; }
+        .delete-btn:active { opacity: 1; transform: scale(1.2); }
+
+        .manual-form { margin-top: 15px; padding-top: 15px; border-top: 1px dashed #E5E7EB; }
+        .form-row { display: flex; gap: 10px; margin-bottom: 10px; }
+        .form-row input, .form-row select { flex: 1; padding: 8px; border: 1px solid #E5E7EB; border-radius: 6px; font-size: 0.9rem; }
+        .btn-submit { width: 100%; background: var(--text-light); color: white; border: none; padding: 10px; border-radius: 8px; font-weight: 600; cursor: pointer; }
         
-        .timer-display {
-            text-align: center;
-            font-size: 2.5em;
-            font-weight: bold;
-            color: #2c3e50;
-            margin: 15px 0;
-            padding: 15px;
-            background: #ecf0f1;
-            border-radius: 10px;
-            font-family: 'Courier New', monospace;
-        }
+        .toolbar { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 15px 20px; box-shadow: 0 -2px 10px rgba(0,0,0,0.05); display: flex; justify-content: space-around; z-index: 20; padding-bottom: max(15px, env(safe-area-inset-bottom)); }
+        .tool-btn { background: none; border: none; font-size: 1.5rem; color: var(--text-light); cursor: pointer; position: relative; }
+        .tool-btn.active { color: var(--primary); }
+
+        .view-section { display: none; }
+        .view-section.active { display: block; }
         
-        .status-buttons {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-            gap: 10px;
-            margin: 15px;
-            padding: 0 10px;
-        }
-        
-        .status-btn {
-            padding: 15px 10px;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 14px;
-            transition: all 0.3s;
-            min-height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        
-        .status-btn.active {
-            transform: scale(1.05);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-        
-        .status-btn.working {
-            background: #3498db;
-            color: white;
-        }
-        
-        .status-btn.resting {
-            background: #2ecc71;
-            color: white;
-        }
-        
-        .status-btn.exercising {
-            background: #e74c3c;
-            color: white;
-        }
-        
-        .status-btn.socializing {
-            background: #f39c12;
-            color: white;
-        }
-        
-        .status-btn.studying {
-            background: #9b59b6;
-            color: white;
-        }
-        
-        .status-btn.custom {
-            background: #1abc9c;
-            color: white;
-        }
-        
-        .add-custom {
-            display: flex;
-            gap: 10px;
-            margin: 15px;
-            padding: 0 10px;
-        }
-        
-        .add-custom input {
-            flex: 1;
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 25px;
-            font-size: 16px;
-        }
-        
-        .add-custom button {
-            padding: 12px 15px;
-            background: #34495e;
-            color: white;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        
-        .manual-entry {
-            background: #f8f9fa;
-            padding: 15px;
-            margin: 15px;
-            border-radius: 10px;
-        }
-        
-        .manual-entry h3 {
-            margin-top: 0;
-            color: #333;
-            font-size: 1.1em;
-        }
-        
-        .manual-entry form {
-            display: grid;
-            gap: 10px;
-        }
-        
-        .manual-entry input, .manual-entry select {
-            padding: 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-        }
-        
-        .manual-entry button {
-            padding: 12px;
-            background: #27ae60;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        
-        .summary {
-            margin: 20px 15px 10px;
-        }
-        
-        .summary h3 {
-            color: #333;
-            font-size: 1.1em;
-        }
-        
-        .summary table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        
-        .summary th, .summary td {
-            border: 1px solid #eee;
-            padding: 12px 8px;
-            text-align: left;
-            font-size: 14px;
-        }
-        
-        .summary th {
-            background: #ecf0f1;
-            font-weight: bold;
-        }
-        
-        .history {
-            margin: 10px 15px 20px;
-        }
-        
-        .history h3 {
-            color: #333;
-            font-size: 1.1em;
-        }
-        
-        .history ul {
-            list-style: none;
-            padding: 0;
-            background: white;
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-        
-        .history li {
-            padding: 12px;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 14px;
-        }
-        
-        .history li:last-child {
-            border-bottom: none;
-        }
-        
-        .delete-btn {
-            background: #e74c3c;
-            color: white;
-            border: none;
-            padding: 6px 10px;
-            border-radius: 15px;
-            cursor: pointer;
-            font-size: 12px;
-            height: fit-content;
-        }
-        
-        .fab {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            width: 56px;
-            height: 56px;
-            border-radius: 50%;
-            background: #3498db;
-            color: white;
-            border: none;
-            font-size: 24px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-        }
-        
-        @media (max-width: 480px) {
-            .timer-display {
-                font-size: 2em;
-            }
-            
-            .status-buttons {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #D1D5DB; border-radius: 3px; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>⏰ 时间追踪器</h1>
-            <div class="real-time">当前时间: <span id="realTime">--:--:--</span></div>
-        </div>
-        
-        <div class="current-status">
-            当前状态: <span id="currentStatus">未开始</span>
-        </div>
-        
-        <div class="timer-display">
-            <div id="timer">00:00:00</div>
-            <div style="font-size: 0.6em; margin-top: 5px;">本次状态已持续</div>
-        </div>
-        
-        <div class="status-buttons">
-            <button class="status-btn working" onclick="changeStatus('工作')">工作</button>
-            <button class="status-btn resting" onclick="changeStatus('休息')">休息</button>
-            <button class="status-btn exercising" onclick="changeStatus('运动')">运动</button>
-            <button class="status-btn socializing" onclick="changeStatus('社交')">社交</button>
-            <button class="status-btn studying" onclick="changeStatus('学习')">学习</button>
-            <button class="status-btn custom" onclick="toggleCustomInput()">自定义</button>
-        </div>
-        
-        <div id="customInput" style="display: none; margin: 15px; padding: 0 10px;">
-            <div class="add-custom">
-                <input type="text" id="customStatus" placeholder="输入新的状态名称">
-                <button onclick="addCustomStatus()">添加</button>
-                <button onclick="toggleCustomInput()">取消</button>
-            </div>
-        </div>
-        
-        <div class="manual-entry">
-            <h3>手动添加记录（补录功能）</h3>
-            <form id="manualForm">
-                <input type="datetime-local" id="startTime" required>
-                <input type="datetime-local" id="endTime" required>
-                <select id="statusSelect" required>
-                    <option value="">选择状态</option>
-                </select>
-                <button type="submit">添加记录</button>
-            </form>
-        </div>
-        
-        <div class="summary">
-            <h3>📊 今日统计</h3>
-            <table id="summaryTable">
-                <thead>
-                    <tr>
-                        <th>状态</th>
-                        <th>持续时间</th>
-                        <th>百分比</th>
-                    </tr>
-                </thead>
-                <tbody id="summaryBody">
-                </tbody>
-            </table>
-        </div>
-        
-        <div class="history">
-            <h3>📋 历史记录</h3>
-            <ul id="historyList"></ul>
-        </div>
-        
-        <button class="fab" onclick="scrollToTop()">↑</button>
+
+    <div class="header">
+        <div class="real-time" id="realTime">00:00:00</div>
+        <div class="date" id="currentDate">加载中...</div>
     </div>
 
-    <!-- PWA Service Worker注册 -->
-  <!-- 请将此脚本替换原 index.html 中的 script 部分 -->
-<script>
-    // 全局变量
-    let startTime = null;
-    let currentStatus = '';
-    let timeRecords = JSON.parse(localStorage.getItem('timeRecords') || '[]');
-    let timerInterval = null;
-    let realTimeInterval = null;
-    let customStatuses = JSON.parse(localStorage.getItem('customStatuses') || '[]');
-    
-    // 新增：用于存储后台开始时间的键
-    const BACKGROUND_START_KEY = 'bgStartTime';
-    const BACKGROUND_STATUS_KEY = 'bgStatus';
+    <div class="container">
+        <div id="view-timer" class="view-section active">
+            <div class="status-card">
+                <div class="current-status-label">当前状态</div>
+                <div class="current-status" id="currentStatus">未开始</div>
+                <div class="timer" id="timer">00:00:00</div>
+                
+                <div class="status-buttons" id="statusButtons">
+                    <button class="status-btn" onclick="changeStatus('工作')">工作</button>
+                    <button class="status-btn" onclick="changeStatus('休息')">休息</button>
+                    <button class="status-btn" onclick="changeStatus('运动')">运动</button>
+                    <button class="status-btn" onclick="changeStatus('社交')">社交</button>
+                    <button class="status-btn" onclick="changeStatus('学习')">学习</button>
+                    <button class="status-btn" style="border-style: dashed; color: var(--text-light);" onclick="toggleCustomInput()">+ 自定义</button>
+                </div>
 
-    // 初始化
-    function init() {
-        loadCustomStatuses();
-        updateStatusButtons();
-        
-        // 【关键修改】检查是否有后台遗留的状态
-        checkBackgroundState();
-        
-        startRealTimeClock();
-        startTimer(); // 启动前台计时器
-        registerServiceWorker();
-    }
+                <div class="custom-input-container" id="customInput">
+                    <div class="input-group">
+                        <input type="text" id="customStatus" placeholder="输入状态名称...">
+                        <button class="btn-add" onclick="addCustomStatus()">添加</button>
+                    </div>
+                </div>
+            </div>
 
-    // 【新增】检查后台状态并恢复
-    function checkBackgroundState() {
-        const bgStart = localStorage.getItem(BACKGROUND_START_KEY);
-        const bgStatus = localStorage.getItem(BACKGROUND_STATUS_KEY);
+            <div class="card">
+                <div class="card-header">
+                    <h2>今日统计</h2>
+                </div>
+                <table class="summary-table">
+                    <thead>
+                        <tr>
+                            <th>状态</th>
+                            <th class="text-right">时长</th>
+                            <th class="text-right">占比</th>
+                        </tr>
+                    </thead>
+                    <tbody id="summaryBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="view-history" class="view-section">
+            <div class="card">
+                <div class="card-header">
+                    <h2>今日记录</h2>
+                    <button class="btn-export" onclick="exportToCSV()">
+                        <span>📥</span> 导出 CSV
+                    </button>
+                </div>
+                <ul class="history-list" id="historyList"></ul>
+
+                <details class="manual-form">
+                    <summary style="cursor: pointer; color: var(--text-light); font-size: 0.9rem; margin-bottom: 10px;">+ 手动补录</summary>
+                    <form id="manualForm">
+                        <div class="form-row">
+                            <input type="datetime-local" id="startTime" required>
+                            <input type="datetime-local" id="endTime" required>
+                        </div>
+                        <div class="form-row">
+                            <select id="statusSelect" required>
+                                <option value="">选择状态</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn-submit">保存记录</button>
+                    </form>
+                </details>
+            </div>
+        </div>
+    </div>
+
+    <div class="toolbar">
+        <button class="tool-btn active" onclick="switchView('timer')" id="nav-timer">⏱️</button>
+        <button class="tool-btn" onclick="switchView('history')" id="nav-history">📋</button>
+    </div>
+
+    <script>
+        let startTime = null;
+        let currentStatus = '';
+        let timeRecords = JSON.parse(localStorage.getItem('timeRecords') || '[]');
+        let timerInterval = null;
+        let realTimeInterval = null;
+        let customStatuses = JSON.parse(localStorage.getItem('customStatuses') || '[]');
         
-        if (bgStart && bgStatus) {
-            const startObj = new Date(bgStart);
+        const BACKGROUND_START_KEY = 'bgStartTime';
+        const BACKGROUND_STATUS_KEY = 'bgStatus';
+        const BACKGROUND_SPLIT_KEY = 'bgSplitTime'; // 新增：记录上次分割的时间点，防止重复保存
+
+        function init() {
+            loadCustomStatuses();
+            updateStatusButtons();
+            
+            // 【核心修改】恢复后台状态，但不重置计时器
+            recoverBackgroundState();
+            
+            startRealTimeClock();
+            startTimer(); // 启动计时器，它会立即计算正确时间
+            registerServiceWorker();
+            
             const now = new Date();
-            const elapsed = Math.floor((now - startObj) / 1000); // 秒
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('endTime').value = now.toISOString().slice(0,16);
+            const start = new Date(now.getTime() - 3600000);
+            document.getElementById('startTime').value = start.toISOString().slice(0,16);
+        }
+
+        // 【核心修改】恢复逻辑：只恢复变量，不保存旧记录（除非跨越了天或手动停止）
+        function recoverBackgroundState() {
+            const bgStart = localStorage.getItem(BACKGROUND_START_KEY);
+            const bgStatus = localStorage.getItem(BACKGROUND_STATUS_KEY);
             
-            // 如果经过时间超过 5 秒，说明可能是后台被挂起了一段时间
-            if (elapsed > 5) {
-                // 自动补录这段“后台时间”
-                saveRecord(bgStatus, startObj, now);
-                console.log(`检测到后台中断，已自动补录 ${formatDuration(elapsed)} 的 ${bgStatus}`);
+            if (bgStart && bgStatus) {
+                const startObj = new Date(bgStart);
+                const now = new Date();
+                
+                // 恢复全局变量，让计时器接着走
+                currentStatus = bgStatus;
+                startTime = startObj; // 关键点：保持原始开始时间，不改为 now
+                
+                document.getElementById('currentStatus').textContent = currentStatus;
+                highlightStatus(currentStatus);
+                
+                // 注意：这里我们 NOT 调用 saveRecord。
+                // 因为用户只是切到了后台又回来，我们希望时间是连续的。
+                // 只有当用户主动点击“切换状态”或者第二天打开时，才应该分割记录。
+                
+                console.log(`恢复后台状态：${currentStatus}，从 ${startTime.toLocaleTimeString()} 开始`);
             }
-            
-            // 清理后台标记，准备重新开始（或者您可以选择继续计时）
-            localStorage.removeItem(BACKGROUND_START_KEY);
-            localStorage.removeItem(BACKGROUND_STATUS_KEY);
-            
-            // 恢复状态显示
-            currentStatus = bgStatus;
-            startTime = now; // 重置开始时间为当前，因为刚才那段已经存了
-            document.getElementById('currentStatus').textContent = currentStatus;
-            
-            // 高亮对应按钮
-            document.querySelectorAll('.status-btn').forEach(btn => {
-                btn.classList.remove('active');
-                if (btn.textContent === currentStatus || (currentStatus === '自定义' && btn.classList.contains('custom'))) {
-                   // 简单处理，实际可能需要更精确匹配
-                }
-            });
-             // 找到对应的按钮并高亮 (简单遍历)
+        }
+
+        function highlightStatus(status) {
+             document.querySelectorAll('.status-btn').forEach(btn => btn.classList.remove('active'));
              const buttons = document.querySelectorAll('.status-btn');
              for(let btn of buttons) {
-                 if(btn.textContent.trim() === currentStatus) {
+                 if(btn.textContent.trim() === status) {
                      btn.classList.add('active');
                      break;
                  }
              }
         }
-    }
 
-    // 启动实时时钟
-    function startRealTimeClock() {
-        function updateRealTime() {
-            const now = new Date();
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-            document.getElementById('realTime').textContent = `${hours}:${minutes}:${seconds}`;
+        function startRealTimeClock() {
+            function updateRealTime() {
+                const now = new Date();
+                document.getElementById('realTime').textContent = now.toLocaleTimeString('zh-CN', {hour12:false});
+                document.getElementById('currentDate').textContent = now.toLocaleDateString('zh-CN', {year:'numeric', month:'long', day:'numeric', weekday:'long'});
+            }
+            updateRealTime();
+            realTimeInterval = setInterval(updateRealTime, 1000);
         }
-        updateRealTime();
-        realTimeInterval = setInterval(updateRealTime, 1000);
-    }
 
-    // 启动前台计时器
-    function startTimer() {
-        if (timerInterval) clearInterval(timerInterval);
-        timerInterval = setInterval(() => {
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            
+            // 立即执行一次，避免 1 秒延迟
+            updateTimerDisplay();
+            
+            timerInterval = setInterval(() => {
+                updateTimerDisplay();
+                // 持续持久化开始时间，防止极端情况下丢失
+                if(startTime && currentStatus) {
+                    localStorage.setItem(BACKGROUND_START_KEY, startTime.toISOString());
+                    localStorage.setItem(BACKGROUND_STATUS_KEY, currentStatus);
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            if (!startTime || !currentStatus) {
+                document.getElementById('timer').textContent = '00:00:00';
+                return;
+            }
+            const elapsed = Math.floor((new Date() - startTime) / 1000);
+            document.getElementById('timer').textContent = formatDuration(elapsed);
+        }
+
+        function formatDuration(totalSeconds) {
+            const hours = Math.floor(totalSeconds / 3600);
+            const minutes = Math.floor((totalSeconds % 3600) / 60);
+            const seconds = totalSeconds % 60;
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        }
+
+        function changeStatus(status) {
+            // 切换状态时，必须保存上一段记录
             if (startTime && currentStatus) {
-                const elapsed = Math.floor((new Date() - startTime) / 1000);
-                document.getElementById('timer').textContent = formatDuration(elapsed);
-                
-                // 【关键修改】同时更新后台标记，以便被杀后恢复
-                localStorage.setItem(BACKGROUND_START_KEY, startTime.toISOString());
-                localStorage.setItem(BACKGROUND_STATUS_KEY, currentStatus);
+                saveRecord(currentStatus, startTime, new Date());
             }
-        }, 1000);
-    }
-
-    function formatDuration(totalSeconds) {
-        const hours = Math.floor(totalSeconds / 3600);
-        const minutes = Math.floor((totalSeconds % 3600) / 60);
-        const seconds = totalSeconds % 60;
-        return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-    }
-
-    function changeStatus(status) {
-        // 保存上一个状态
-        if (startTime && currentStatus) {
-            saveRecord(currentStatus, startTime, new Date());
-        }
-        
-        currentStatus = status;
-        startTime = new Date();
-        document.getElementById('currentStatus').textContent = status;
-        document.getElementById('timer').textContent = '00:00:00';
-        
-        // 更新按钮样式
-        document.querySelectorAll('.status-btn').forEach(btn => btn.classList.remove('active'));
-        // 简单匹配高亮
-        const buttons = document.querySelectorAll('.status-btn');
-        for(let btn of buttons) {
-            if(btn.textContent.trim() === status) {
-                btn.classList.add('active');
-                break;
-            }
-        }
-        
-        // 立即写入后台标记
-        localStorage.setItem(BACKGROUND_START_KEY, startTime.toISOString());
-        localStorage.setItem(BACKGROUND_STATUS_KEY, currentStatus);
-    }
-
-    function saveRecord(status, start, end) {
-        const record = {
-            status: status,
-            start: start.toISOString(),
-            end: end.toISOString(),
-            duration: (end - start) / 1000
-        };
-        timeRecords.push(record);
-        localStorage.setItem('timeRecords', JSON.stringify(timeRecords));
-        loadTodayRecords();
-    }
-
-    // ... (其余函数 loadTodayRecords, updateSummary, updateHistory 等保持不变，直接复用之前的代码) ...
-    // 为了节省篇幅，这里省略了之前代码中未修改的函数 (loadTodayRecords, updateSummary, updateHistory, addCustomStatus 等)
-    // 请您将之前完整的 index.html 中除了 startTimer, changeStatus, init 之外的其他函数复制过来即可。
-    // 重点是需要保留 loadTodayRecords, updateSummary, updateHistory, deleteRecord 等功能函数。
-    
-    // --- 以下是需要保留的其他辅助函数 (请从原代码复制完整内容) ---
-    function loadTodayRecords() {
-        const today = new Date(); today.setHours(0,0,0,0);
-        const todayRecords = timeRecords.filter(r => new Date(r.start) >= today);
-        updateSummary(todayRecords);
-        updateHistory(todayRecords);
-    }
-    function updateSummary(records) {
-        const summaryBody = document.getElementById('summaryBody');
-        summaryBody.innerHTML = '';
-        if (records.length === 0) {
-            summaryBody.innerHTML = '<tr><td colspan="3" style="text-align: center;">暂无数据</td></tr>';
-            return;
-        }
-        const statusTotals = {};
-        records.forEach(r => { statusTotals[r.status] = (statusTotals[r.status] || 0) + r.duration; });
-        const total = Object.values(statusTotals).reduce((a,b)=>a+b, 0);
-        for (const [status, duration] of Object.entries(statusTotals)) {
-            const row = document.createElement('tr');
-            row.innerHTML = `<td>${status}</td><td>${formatDuration(Math.floor(duration))}</td><td>${((duration/total)*100).toFixed(1)}%</td>`;
-            summaryBody.appendChild(row);
-        }
-    }
-    function updateHistory(records) {
-        const list = document.getElementById('historyList');
-        list.innerHTML = '';
-        if (records.length === 0) {
-            list.innerHTML = '<li style="text-align:center;color:#999;padding:20px;">暂无记录</li>';
-            return;
-        }
-        [...records].sort((a,b)=>new Date(b.start)-new Date(a.start)).forEach(r => {
-            const li = document.createElement('li');
-            const s = new Date(r.start), e = new Date(r.end);
-            li.innerHTML = `<span>${s.getHours().toString().padStart(2,'0')}:${s.getMinutes().toString().padStart(2,'0')} - ${e.getHours().toString().padStart(2,'0')}:${e.getMinutes().toString().padStart(2,'0')}: ${r.status} (${formatDuration(Math.floor(r.duration))})</span>
-            <button class="delete-btn" onclick="deleteRecord('${r.start}')">删除</button>`;
-            list.appendChild(li);
-        });
-    }
-    function deleteRecord(startIso) {
-        if(confirm('确定删除？')) {
-            timeRecords = timeRecords.filter(r => r.start !== startIso);
-            localStorage.setItem('timeRecords', JSON.stringify(timeRecords));
-            loadTodayRecords();
-        }
-    }
-    function addCustomStatus() {
-        const input = document.getElementById('customStatus');
-        const val = input.value.trim();
-        if(val && !customStatuses.includes(val)) {
-            customStatuses.push(val);
-            localStorage.setItem('customStatuses', JSON.stringify(customStatuses));
-            createCustomButton(val);
-            updateStatusButtons();
-        }
-        input.value = '';
-        toggleCustomInput();
-    }
-    function createCustomButton(name) {
-        const btn = document.createElement('button');
-        btn.className = 'status-btn custom';
-        btn.textContent = name;
-        btn.onclick = () => changeStatus(name);
-        document.querySelector('.status-buttons').appendChild(btn);
-    }
-    function loadCustomStatuses() {
-        customStatuses.forEach(createCustomButton);
-    }
-    function toggleCustomInput() {
-        const el = document.getElementById('customInput');
-        el.style.display = el.style.display === 'none' ? 'block' : 'none';
-    }
-    function updateStatusButtons() {
-        const sel = document.getElementById('statusSelect');
-        sel.innerHTML = '<option value="">选择状态</option>';
-        ['工作','休息','运动','社交','学习',...customStatuses].forEach(s => {
-            const op = document.createElement('option');
-            op.value = s; op.textContent = s;
-            sel.appendChild(op);
-        });
-    }
-    document.getElementById('manualForm').addEventListener('submit', function(e){
-        e.preventDefault();
-        const s = new Date(document.getElementById('startTime').value);
-        const en = new Date(document.getElementById('endTime').value);
-        const st = document.getElementById('statusSelect').value;
-        if(isNaN(s) || isNaN(en) || s>=en) { alert('时间无效'); return; }
-        timeRecords.push({status:st, start:s.toISOString(), end:en.toISOString(), duration:(en-s)/1000});
-        localStorage.setItem('timeRecords', JSON.stringify(timeRecords));
-        loadTodayRecords();
-        this.reset();
-    });
-    function scrollToTop() { document.querySelector('.container').scrollTop = 0; }
-    window.onload = init;
-    function registerServiceWorker() {
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').then(r=>console.log('SW OK')).catch(e=>console.error(e));
-        }
-    }
-    window.addEventListener('beforeunload', () => {
-        if(startTime && currentStatus) {
-            // 离开前保存一次，防止瞬间被杀丢失
-            saveRecord(currentStatus, startTime, new Date());
-            // 同时更新后台标记，确保下次打开能恢复
+            
+            currentStatus = status;
+            startTime = new Date(); // 新状态从此刻开始
+            
+            document.getElementById('currentStatus').textContent = status;
+            document.getElementById('timer').textContent = '00:00:00';
+            
+            highlightStatus(status);
+            
             localStorage.setItem(BACKGROUND_START_KEY, startTime.toISOString());
             localStorage.setItem(BACKGROUND_STATUS_KEY, currentStatus);
         }
-    });
-</script>
+
+        function saveRecord(status, start, end) {
+            if (end <= start) return;
+            const record = {
+                status: status,
+                start: start.toISOString(),
+                end: end.toISOString(),
+                duration: (end - start) / 1000
+            };
+            timeRecords.push(record);
+            localStorage.setItem('timeRecords', JSON.stringify(timeRecords));
+            loadTodayRecords();
+        }
+
+        function loadTodayRecords() {
+            const today = new Date(); today.setHours(0,0,0,0);
+            const todayRecords = timeRecords.filter(r => new Date(r.start) >= today);
+            updateSummary(todayRecords);
+            updateHistory(todayRecords);
+        }
+
+        function updateSummary(records) {
+            const summaryBody = document.getElementById('summaryBody');
+            summaryBody.innerHTML = '';
+            if (records.length === 0) {
+                summaryBody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #999; padding: 20px;">暂无数据</td></tr>';
+                return;
+            }
+            const statusTotals = {};
+            records.forEach(r => { statusTotals[r.status] = (statusTotals[r.status] || 0) + r.duration; });
+            const total = Object.values(statusTotals).reduce((a,b)=>a+b, 0);
+            const sortedStatuses = Object.entries(statusTotals).sort((a,b) => b[1] - a[1]);
+
+            for (const [status, duration] of sortedStatuses) {
+                const row = document.createElement('tr');
+                const percent = total > 0 ? ((duration/total)*100).toFixed(1) : '0.0';
+                row.innerHTML = `<td>${status}</td><td class="text-right font-bold">${formatDuration(Math.floor(duration))}</td><td class="text-right">${percent}%</td>`;
+                summaryBody.appendChild(row);
+            }
+        }
+
+        function updateHistory(records) {
+            const list = document.getElementById('historyList');
+            list.innerHTML = '';
+            if (records.length === 0) {
+                list.innerHTML = '<li style="text-align:center;color:#999;padding:20px;">暂无记录</li>';
+                return;
+            }
+            [...records].sort((a,b)=>new Date(b.start)-new Date(a.start)).forEach(r => {
+                const li = document.createElement('li');
+                li.className = 'history-item';
+                const s = new Date(r.start), e = new Date(r.end);
+                const timeStr = `${s.getHours().toString().padStart(2,'0')}:${s.getMinutes().toString().padStart(2,'0')} - ${e.getHours().toString().padStart(2,'0')}:${e.getMinutes().toString().padStart(2,'0')}`;
+                
+                li.innerHTML = `
+                    <div class="history-info">
+                        <div class="history-time">${timeStr} <span style="font-weight:normal; color:#666;">(${formatDuration(Math.floor(r.duration))})</span></div>
+                        <div class="history-status">${r.status}</div>
+                    </div>
+                    <button class="delete-btn" onclick="deleteRecord('${r.start}')">&times;</button>
+                `;
+                list.appendChild(li);
+            });
+        }
+
+        function deleteRecord(startIso) {
+            if(confirm('确定删除这条记录吗？')) {
+                timeRecords = timeRecords.filter(r => r.start !== startIso);
+                localStorage.setItem('timeRecords', JSON.stringify(timeRecords));
+                loadTodayRecords();
+            }
+        }
+
+        function addCustomStatus() {
+            const input = document.getElementById('customStatus');
+            const val = input.value.trim();
+            if(val && !customStatuses.includes(val)) {
+                customStatuses.push(val);
+                localStorage.setItem('customStatuses', JSON.stringify(customStatuses));
+                createCustomButton(val);
+                updateStatusButtons();
+                input.value = '';
+                toggleCustomInput();
+            } else if (customStatuses.includes(val)) {
+                alert('该状态已存在');
+            }
+        }
+
+        function createCustomButton(name) {
+            const btn = document.createElement('button');
+            btn.className = 'status-btn custom';
+            btn.textContent = name;
+            btn.onclick = () => changeStatus(name);
+            const customBtn = document.querySelector('.status-btn[onclick="toggleCustomInput()"]');
+            document.querySelector('.status-buttons').insertBefore(btn, customBtn);
+        }
+
+        function loadCustomStatuses() {
+            customStatuses.forEach(createCustomButton);
+        }
+
+        function toggleCustomInput() {
+            const el = document.getElementById('customInput');
+            el.style.display = el.style.display === 'none' ? 'block' : 'none';
+            if(el.style.display === 'block') document.getElementById('customStatus').focus();
+        }
+
+        function updateStatusButtons() {
+            const sel = document.getElementById('statusSelect');
+            sel.innerHTML = '<option value="">选择状态</option>';
+            ['工作','休息','运动','社交','学习',...customStatuses].forEach(s => {
+                const op = document.createElement('option');
+                op.value = s; op.textContent = s;
+                sel.appendChild(op);
+            });
+        }
+
+        document.getElementById('manualForm').addEventListener('submit', function(e){
+            e.preventDefault();
+            const sVal = document.getElementById('startTime').value;
+            const eVal = document.getElementById('endTime').value;
+            const st = document.getElementById('statusSelect').value;
+            
+            if(!sVal || !eVal || !st) { alert('请填写完整信息'); return; }
+            
+            const s = new Date(sVal);
+            const en = new Date(eVal);
+            
+            if(s >= en) { alert('结束时间必须晚于开始时间'); return; }
+            
+            timeRecords.push({status:st, start:s.toISOString(), end:en.toISOString(), duration:(en-s)/1000});
+            localStorage.setItem('timeRecords', JSON.stringify(timeRecords));
+            loadTodayRecords();
+            this.reset();
+            alert('添加成功！');
+            const now = new Date();
+            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+            document.getElementById('endTime').value = now.toISOString().slice(0,16);
+        });
+
+        function switchView(viewName) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tool-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById(`view-${viewName}`).classList.add('active');
+            document.getElementById(`nav-${viewName}`).classList.add('active');
+            if(viewName === 'history') loadTodayRecords();
+        }
+
+        function exportToCSV() {
+            if (timeRecords.length === 0) { alert('暂无数据可导出'); return; }
+            let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; 
+            csvContent += "状态,开始时间,结束时间,持续时长(秒),持续时长(格式化)\n";
+            const sortedRecords = [...timeRecords].sort((a, b) => new Date(a.start) - new Date(b.start));
+            sortedRecords.forEach(function(row) {
+                const startDate = new Date(row.start);
+                const endDate = new Date(row.end);
+                const formatTime = (date) => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')} ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}:${String(date.getSeconds()).padStart(2,'0')}`;
+                const rowStr = [`"${row.status}"`, formatTime(startDate), formatTime(endDate), row.duration, formatDuration(Math.floor(row.duration))].join(",");
+                csvContent += rowStr + "\n";
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            const dateStr = new Date().toISOString().slice(0,10).replace(/-/g,"");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", `时间记录_${dateStr}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        window.onload = init;
+
+        function registerServiceWorker() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js').then(r=>console.log('SW OK')).catch(e=>console.error(e));
+            }
+        }
+
+        // 离开页面时，我们依然保存状态，但不保存记录（为了保持连续性）
+        window.addEventListener('beforeunload', () => {
+            if(startTime && currentStatus) {
+                localStorage.setItem(BACKGROUND_START_KEY, startTime.toISOString());
+                localStorage.setItem(BACKGROUND_STATUS_KEY, currentStatus);
+            }
+        });
+    </script>
 </body>
 </html>
