@@ -15,141 +15,152 @@
             background-color: #f5f5f5;
             padding-bottom: 80px;
         }
-        /* 备份恢复按钮样式 */
-        .backup-bar {
-            padding: 10px;
-            background: #e8f0fe;
-            text-align: center;
-            border-bottom: 1px solid #ddd;
-        }
-        .backup-btn {
-            padding: 8px 16px;
-            margin: 0 5px;
-            border: none;
-            border-radius: 4px;
-            color: white;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        .backup-btn.export { background-color: #4285f4; }
-        .backup-btn.import { background-color: #34a853; }
-        .backup-btn.sync { background-color: #fbbc05; }
-        .backup-btn:hover { opacity: 0.9; }
-        /* 原有样式 */
+        /* 标题栏样式 */
         .header {
             background-color: #4169E1;
             color: white;
-            padding: 20px;
+            padding: 16px 20px;
             text-align: center;
             position: relative;
+            font-size: 1.2rem;
+            font-weight: 600;
         }
-        .header .settings {
+        .header .settings-btn {
             position: absolute;
             right: 20px;
             top: 50%;
             transform: translateY(-50%);
-            font-size: 24px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 1rem;
             cursor: pointer;
         }
-        .tag-container {
+        /* 计时区样式 */
+        .timer-container {
+            padding: 20px;
+            text-align: center;
+            background: white;
+            margin: 10px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .timer {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #333;
+        }
+        /* 一级标签样式 */
+        .main-tag-container {
             display: flex;
             flex-wrap: wrap;
             gap: 10px;
-            padding: 20px;
+            padding: 10px 20px;
         }
-        .tag-item {
+        .main-tag-item {
             flex: 1;
-            min-width: 120px;
-            padding: 15px;
+            min-width: 100px;
+            padding: 12px 8px;
             background-color: white;
             border-radius: 8px;
             text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.2s;
+            font-size: 0.9rem;
         }
-        .tag-item.active {
+        .main-tag-item.active {
             background-color: #4169E1;
             color: white;
-        }
-        .tag-item:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
-        .timer {
-            text-align: center;
-            padding: 30px;
-            font-size: 48px;
-            font-weight: bold;
-            color: #333;
         }
         /* 二级标签样式 */
         .subtag-container {
             display: none;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px dashed #e0e0e0;
+            padding: 10px 20px;
+            margin-top: 5px;
         }
-        .current-subtag-label {
-            font-size: 0.9rem;
+        .subtag-label {
+            font-size: 0.85rem;
             color: #666;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             text-align: center;
-            text-transform: uppercase;
-            letter-spacing: 1px;
         }
         .subtag-buttons {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-bottom: 15px;
+            gap: 10px;
         }
         .subtag-btn {
             background: white;
-            border: 2px solid #e0e0e0;
+            border: 1px solid #e0e0e0;
             color: #333;
-            padding: 12px 5px;
-            border-radius: 12px;
-            font-size: 0.85rem;
-            font-weight: 600;
+            padding: 10px 5px;
+            border-radius: 8px;
+            font-size: 0.8rem;
             cursor: pointer;
             transition: all 0.2s;
-            min-height: 60px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
         .subtag-btn.active {
             background: #4169E1;
             color: white;
             border-color: #4169E1;
-            box-shadow: 0 4px 12px rgba(65, 105, 225, 0.3);
         }
-        .btn-manage-subtag {
-            background: #F9FAFB;
-            border: 1px dashed #e0e0e0;
-            color: #666;
-            font-size: 0.85rem;
+        /* 统计页面样式 */
+        .stats-page {
             padding: 10px;
-            grid-column: span 3;
-            margin-top: 5px;
         }
-        .stats-container { padding: 20px; }
         .stats-card {
             background-color: white;
             border-radius: 8px;
-            padding: 20px;
-            margin-bottom: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         .stats-card h3 {
-            margin-bottom: 15px;
             color: #4169E1;
-            font-size: 18px;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f0f0f0;
         }
         .stats-item {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #eee;
+            padding: 6px 0;
+            font-size: 0.9rem;
+            border-bottom: 1px solid #f8f8f8;
         }
+        /* 统计页数据功能按钮 */
+        .data-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 10px 20px;
+            margin-top: 10px;
+        }
+        .data-btn {
+            flex: 1;
+            min-width: 80px;
+            padding: 10px 5px;
+            background: white;
+            border: 1px solid #4169E1;
+            color: #4169E1;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        .data-btn.danger {
+            border-color: #ff4d4f;
+            color: #ff4d4f;
+        }
+        /* 底部Tab栏 */
         .tab-bar {
             position: fixed;
             bottom: 0;
@@ -157,22 +168,23 @@
             right: 0;
             display: flex;
             background-color: white;
-            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
         }
         .tab-item {
             flex: 1;
-            padding: 15px;
+            padding: 12px 0;
             text-align: center;
             cursor: pointer;
-            font-size: 16px;
+            font-size: 0.9rem;
+            color: #666;
         }
         .tab-item.active {
             color: #4169E1;
+            font-weight: 600;
             border-bottom: 3px solid #4169E1;
         }
-        .page { display: none; }
-        .page.active { display: block; }
-        .settings-modal {
+        /* 弹窗通用样式 */
+        .modal {
             position: fixed;
             top: 0;
             left: 0;
@@ -184,111 +196,186 @@
             align-items: center;
             z-index: 100;
         }
-        .settings-content {
+        .modal-content {
             background-color: white;
             border-radius: 8px;
             padding: 20px;
             width: 90%;
             max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
         }
-        .settings-content h3 {
-            margin-bottom: 20px;
-            color: #4169E1;
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f0f0f0;
         }
-        .settings-item { margin-bottom: 15px; }
-        .settings-item button {
+        .modal-btn {
             padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-top: 15px;
+        }
+        .modal-btn.primary {
             background-color: #4169E1;
             color: white;
+            width: 100%;
+        }
+        .modal-btn.close {
+            background-color: #f0f0f0;
+            color: #666;
+            width: 100%;
+            margin-top: 8px;
+        }
+        /* 标签管理样式 */
+        .tag-item-edit {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+        .tag-input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        .delete-tag-btn {
+            background: #ff4d4f;
+            color: white;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
+            padding: 8px 12px;
             cursor: pointer;
         }
-        .close-btn {
-            margin-top: 20px;
-            padding: 8px 16px;
-            background-color: #ccc;
-            color: #333;
+        .add-tag-btn {
+            background: #f0f0f0;
             border: none;
-            border-radius: 4px;
+            border-radius: 6px;
+            padding: 8px;
+            width: 100%;
+            margin-bottom: 10px;
             cursor: pointer;
+            color: #666;
+        }
+        /* 页面切换 */
+        .page {
+            display: none;
+        }
+        .page.active {
+            display: block;
+        }
+        /* 文件导入隐藏输入框 */
+        #fileInput {
+            display: none;
         }
     </style>
 </head>
 <body>
-    <!-- 备份/恢复/自动同步数据按钮栏 -->
-    <div class="backup-bar">
-        <button class="backup-btn export" onclick="backupData()">📤 备份数据</button>
-        <input type="file" accept=".json" onchange="restoreData(this)" style="display: none;" id="restoreFileInput">
-        <button class="backup-btn import" onclick="document.getElementById('restoreFileInput').click()">📥 恢复数据</button>
-        <button class="backup-btn sync" onclick="autoSyncData()">📌 自动同步数据</button>
-    </div>
-
+    <!-- 标题栏 -->
     <div class="header">
-        <h1>时间记录工具</h1>
-        <div class="settings" onclick="openSettings()">⚙️</div>
+        时间记录工具
+        <button class="settings-btn" onclick="openSettingsModal()">
+            🔧 设置
+        </button>
     </div>
 
+    <!-- 计时页面 -->
     <div class="page active" id="timer-page">
-        <div class="tag-container">
-            <div class="tag-item" data-tag-id="tag_1" data-tag-name="处理工作">处理工作</div>
-            <div class="tag-item" data-tag-id="tag_2" data-tag-name="学习研究">学习研究</div>
-            <div class="tag-item" data-tag-id="tag_3" data-tag-name="运动健身">运动健身</div>
-            <div class="tag-item" data-tag-id="tag_4" data-tag-name="休息睡觉">休息睡觉</div>
-            <div class="tag-item" data-tag-id="tag_5" data-tag-name="主动娱乐">主动娱乐</div>
-            <div class="tag-item" data-tag-id="tag_6" data-tag-name="碎片泄露">碎片泄露</div>
+        <!-- 计时区 -->
+        <div class="timer-container">
+            <div class="timer" id="timer">00:00:00</div>
         </div>
-        <div class="timer" id="timer">00:00:00</div>
-        <!-- 二级标签容器 -->
+        
+        <!-- 一级标签区 -->
+        <div class="main-tag-container" id="mainTagContainer">
+            <!-- 一级标签由JS动态生成 -->
+        </div>
+        
+        <!-- 二级标签区 -->
         <div class="subtag-container" id="subtagContainer">
-            <div class="current-subtag-label">二级明细</div>
+            <div class="subtag-label">二级明细</div>
             <div class="subtag-buttons" id="subtagButtons"></div>
-            <button class="subtag-btn btn-manage-subtag" onclick="openSubtagManager()">✏️ 管理二级标签</button>
         </div>
     </div>
 
+    <!-- 统计页面 -->
     <div class="page" id="stats-page">
-        <div class="stats-container">
+        <div class="stats-page">
             <div class="stats-card">
                 <h3>今日统计</h3>
                 <div id="today-stats"></div>
             </div>
+            
             <div class="stats-card">
                 <h3>历史记录</h3>
                 <div id="history-stats"></div>
             </div>
+            
+            <!-- 数据功能按钮 -->
+            <div class="data-actions">
+                <button class="data-btn" onclick="exportAllRecords()">📤 导出记录</button>
+                <button class="data-btn" onclick="backupData()">📤 备份数据</button>
+                <button class="data-btn" onclick="document.getElementById('fileInput').click()">📥 恢复数据</button>
+                <button class="data-btn" onclick="autoSyncData()">📌 自动同步</button>
+                <button class="data-btn danger" onclick="clearTodayRecords()">🗑️ 清空今日</button>
+                <input type="file" accept=".json" id="fileInput" onchange="restoreData(this)">
+            </div>
         </div>
     </div>
 
+    <!-- 底部Tab栏 -->
     <div class="tab-bar">
         <div class="tab-item active" onclick="switchTab('timer-page')">计时</div>
         <div class="tab-item" onclick="switchTab('stats-page')">统计</div>
     </div>
 
-    <div class="settings-modal" id="settings-modal">
-        <div class="settings-content">
-            <h3>设置菜单</h3>
-            <div class="settings-item">
-                <button onclick="exportAllRecords()">📤 导出全部历史记录</button>
-            </div>
-            <div class="settings-item">
-                <button onclick="clearTodayRecords()">🗑️ 清空今日记录</button>
-            </div>
-            <button class="close-btn" onclick="closeSettings()">关闭</button>
+    <!-- 设置弹窗（仅标签管理） -->
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <div class="modal-title">设置</div>
+            <button class="modal-btn primary" onclick="openMainTagManager()">✏️ 管理一级标签</button>
+            <button class="modal-btn primary" onclick="openSubTagManager()">✏️ 管理二级标签</button>
+            <button class="modal-btn close" onclick="closeAllModals()">关闭</button>
+        </div>
+    </div>
+
+    <!-- 一级标签管理弹窗 -->
+    <div class="modal" id="mainTagManagerModal">
+        <div class="modal-content">
+            <div class="modal-title">管理一级标签</div>
+            <div id="mainTagEditContainer"></div>
+            <button class="add-tag-btn" onclick="addNewMainTag()">+ 添加新标签</button>
+            <button class="modal-btn primary" onclick="saveMainTags()">保存修改</button>
+            <button class="modal-btn close" onclick="closeAllModals()">关闭</button>
+        </div>
+    </div>
+
+    <!-- 二级标签管理弹窗（占位） -->
+    <div class="modal" id="subTagManagerModal">
+        <div class="modal-content">
+            <div class="modal-title">管理二级标签</div>
+            <p style="font-size:0.9rem; color:#666; margin-bottom:15px;">二级标签管理功能可根据需求扩展</p>
+            <button class="modal-btn close" onclick="closeAllModals()">关闭</button>
         </div>
     </div>
 
     <script>
-        // 默认一级标签
-        const DEFAULT_TAGS = [
-            { id: 'tag_1', name: '处理工作', aliases: [] },
-            { id: 'tag_2', name: '学习研究', aliases: [] },
-            { id: 'tag_3', name: '运动健身', aliases: [] },
-            { id: 'tag_4', name: '休息睡觉', aliases: [] },
-            { id: 'tag_5', name: '主动娱乐', aliases: [] },
-            { id: 'tag_6', name: '碎片泄露', aliases: [] }
+        // 默认配置
+        const DEFAULT_MAIN_TAGS = [
+            { id: 'tag_1', name: '处理工作' },
+            { id: 'tag_2', name: '学习研究' },
+            { id: 'tag_3', name: '运动健身' },
+            { id: 'tag_4', name: '休息睡觉' },
+            { id: 'tag_5', name: '主动娱乐' },
+            { id: 'tag_6', name: '碎片泄露' }
         ];
-        // 默认二级标签
         const DEFAULT_SUBTAGS = {
             '处理工作': ['开会', '写文档', '对接需求', '处理邮件', '编程开发'],
             '学习研究': ['学英语', '看书', '写代码', '查资料', '网课学习'],
@@ -299,40 +386,52 @@
         };
 
         // 全局变量
-        let statusTags = JSON.parse(localStorage.getItem('statusTagsV2') || JSON.stringify(DEFAULT_TAGS));
-        let subTags = JSON.parse(localStorage.getItem('subTags') || JSON.stringify(DEFAULT_SUBTAGS));
-        let records = JSON.parse(localStorage.getItem('timeRecordsV2') || '[]');
+        let mainTags = JSON.parse(localStorage.getItem('mainTags')) || DEFAULT_MAIN_TAGS;
+        let subTags = JSON.parse(localStorage.getItem('subTags')) || DEFAULT_SUBTAGS;
+        let records = JSON.parse(localStorage.getItem('timeRecordsV2')) || [];
         let currentTagId = '';
         let currentSubtag = '';
         let startTime = 0;
         let timerInterval = null;
 
         // 初始化
-        init();
-        function init() {
-            // 绑定一级标签点击
-            document.querySelectorAll('.tag-item').forEach(item => {
-                item.addEventListener('click', function() {
+        window.onload = function() {
+            renderMainTags();
+            updateTodayStats();
+            updateHistoryStats();
+        };
+
+        // 渲染一级标签
+        function renderMainTags() {
+            const container = document.getElementById('mainTagContainer');
+            container.innerHTML = '';
+            mainTags.forEach(tag => {
+                const item = document.createElement('div');
+                item.className = `main-tag-item ${currentTagId === tag.id ? 'active' : ''}`;
+                item.dataset.tagId = tag.id;
+                item.dataset.tagName = tag.name;
+                item.textContent = tag.name;
+                item.onclick = function() {
                     stopTimer();
-                    document.querySelectorAll('.tag-item').forEach(i => i.classList.remove('active'));
+                    document.querySelectorAll('.main-tag-item').forEach(i => i.classList.remove('active'));
                     this.classList.add('active');
                     currentTagId = this.dataset.tagId;
                     currentSubtag = '';
                     startTime = Date.now();
-                    showSubtagContainer(this.dataset.tagName);
+                    showSubtags(this.dataset.tagName);
                     startTimer();
-                });
+                };
+                container.appendChild(item);
             });
-            updateTodayStats();
-            updateHistoryStats();
         }
 
         // 显示二级标签
-        function showSubtagContainer(mainTagName) {
+        function showSubtags(tagName) {
             const container = document.getElementById('subtagContainer');
-            const subtagButtons = document.getElementById('subtagButtons');
-            subtagButtons.innerHTML = '';
-            const subtags = subTags[mainTagName] || [];
+            const buttons = document.getElementById('subtagButtons');
+            buttons.innerHTML = '';
+            
+            const subtags = subTags[tagName] || [];
             if (subtags.length > 0) {
                 container.style.display = 'block';
                 subtags.forEach(subtag => {
@@ -340,19 +439,19 @@
                     btn.className = `subtag-btn ${currentSubtag === subtag ? 'active' : ''}`;
                     btn.dataset.subtag = subtag;
                     btn.textContent = subtag;
-                    btn.onclick = () => {
-                        currentSubtag = subtag;
+                    btn.onclick = function() {
+                        currentSubtag = this.dataset.subtag;
                         document.querySelectorAll('.subtag-btn').forEach(b => b.classList.remove('active'));
-                        btn.classList.add('active');
+                        this.classList.add('active');
                     };
-                    subtagButtons.appendChild(btn);
+                    buttons.appendChild(btn);
                 });
             } else {
                 container.style.display = 'none';
             }
         }
 
-        // 计时相关
+        // 计时功能
         function startTimer() {
             if (timerInterval) clearInterval(timerInterval);
             timerInterval = setInterval(() => {
@@ -363,178 +462,335 @@
                 document.getElementById('timer').textContent = `${h}:${m}:${s}`;
             }, 1000);
         }
+
         function stopTimer() {
             if (timerInterval) {
                 clearInterval(timerInterval);
                 timerInterval = null;
+                
                 if (currentTagId) {
                     const endTime = Date.now();
                     const duration = Math.floor((endTime - startTime) / 1000);
                     const today = new Date().toISOString().split('T')[0];
+                    const tagName = getTagNameById(currentTagId);
+                    
                     records.push({
                         id: 'rec_' + Date.now(),
                         tagId: currentTagId,
+                        tagName: tagName,
                         subtag: currentSubtag,
                         start: new Date(startTime).toISOString(),
                         end: new Date(endTime).toISOString(),
                         duration: duration,
-                        date: today,
-                        originalName: getTagNameById(currentTagId)
+                        date: today
                     });
+                    
                     localStorage.setItem('timeRecordsV2', JSON.stringify(records));
                     updateTodayStats();
                     updateHistoryStats();
+                    
                     currentTagId = '';
                     currentSubtag = '';
                     document.getElementById('timer').textContent = '00:00:00';
+                    document.querySelectorAll('.main-tag-item').forEach(i => i.classList.remove('active'));
+                    document.getElementById('subtagContainer').style.display = 'none';
                 }
             }
         }
 
-        // 统计相关（兼容旧数据：tagId → tagName）
+        // 辅助函数：通过ID获取标签名
         function getTagNameById(tagId) {
-            const tag = statusTags.find(t => t.id === tagId);
+            const tag = mainTags.find(t => t.id === tagId);
             return tag ? tag.name : '未知';
         }
+
+        // 格式化时长
         function formatDuration(seconds) {
             const h = Math.floor(seconds / 3600);
             const m = Math.floor((seconds % 3600) / 60);
-            return `${h}小时${m}分钟`;
+            return h > 0 ? `${h}小时${m}分钟` : `${m}分钟`;
         }
+
+        // 更新统计
         function updateTodayStats() {
             const today = new Date().toISOString().split('T')[0];
             const todayRecords = records.filter(r => r.date === today);
-            const tagSummary = {};
+            const summary = {};
+            
             todayRecords.forEach(r => {
-                const tagName = getTagNameById(r.tagId);
-                if (!tagSummary[tagName]) tagSummary[tagName] = 0;
-                tagSummary[tagName] += r.duration;
+                const name = r.tagName || getTagNameById(r.tagId);
+                summary[name] = (summary[name] || 0) + r.duration;
             });
+            
             let html = '';
-            Object.keys(tagSummary).forEach(tag => {
-                html += `<div class="stats-item"><span>${tag}</span><span>${formatDuration(tagSummary[tag])}</span></div>`;
-            });
-            if (html === '') html = '<div class="stats-item"><span>暂无今日记录</span></div>';
+            if (Object.keys(summary).length === 0) {
+                html = '<div class="stats-item"><span>暂无今日记录</span></div>';
+            } else {
+                Object.keys(summary).forEach(name => {
+                    html += `<div class="stats-item">
+                        <span>${name}</span>
+                        <span>${formatDuration(summary[name])}</span>
+                    </div>`;
+                });
+            }
             document.getElementById('today-stats').innerHTML = html;
         }
+
         function updateHistoryStats() {
             const dateGroups = {};
             records.forEach(r => {
                 if (!dateGroups[r.date]) dateGroups[r.date] = [];
                 dateGroups[r.date].push(r);
             });
+            
             let html = '';
-            Object.keys(dateGroups).reverse().forEach(date => {
-                html += `<div class="stats-item"><strong>${date}</strong></div>`;
-                const tagSummary = {};
-                dateGroups[date].forEach(r => {
-                    const tagName = getTagNameById(r.tagId);
-                    if (!tagSummary[tagName]) tagSummary[tagName] = 0;
-                    tagSummary[tagName] += r.duration;
+            if (Object.keys(dateGroups).length === 0) {
+                html = '<div class="stats-item"><span>暂无历史记录</span></div>';
+            } else {
+                // 按日期倒序
+                const sortedDates = Object.keys(dateGroups).sort((a, b) => new Date(b) - new Date(a));
+                sortedDates.forEach(date => {
+                    html += `<div class="stats-item"><strong>${date}</strong></div>`;
+                    const daySummary = {};
+                    dateGroups[date].forEach(r => {
+                        const name = r.tagName || getTagNameById(r.tagId);
+                        daySummary[name] = (daySummary[name] || 0) + r.duration;
+                    });
+                    Object.keys(daySummary).forEach(name => {
+                        html += `<div class="stats-item" style="padding-left: 15px;">
+                            <span>${name}</span>
+                            <span>${formatDuration(daySummary[name])}</span>
+                        </div>`;
+                    });
                 });
-                Object.keys(tagSummary).forEach(tag => {
-                    html += `<div class="stats-item" style="padding-left: 15px;"><span>${tag}</span><span>${formatDuration(tagSummary[tag])}</span></div>`;
-                });
-            });
-            if (html === '') html = '<div class="stats-item"><span>暂无历史记录</span></div>';
+            }
             document.getElementById('history-stats').innerHTML = html;
         }
 
         // 页面切换
         function switchTab(pageId) {
-            if (pageId === 'stats-page') stopTimer();
+            stopTimer(); // 切换页面停止计时
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
             document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+            document.getElementById(pageId).classList.add('active');
             event.target.classList.add('active');
+            
+            // 切换到统计页时更新数据
+            if (pageId === 'stats-page') {
+                updateTodayStats();
+                updateHistoryStats();
+            }
         }
 
-        // 设置菜单
-        function openSettings() { document.getElementById('settings-modal').style.display = 'flex'; }
-        function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; }
-        function exportAllRecords() {
-            const csvHeader = 'ID,标签,二级标签,开始时间,结束时间,时长(秒),日期\n';
-            let csvContent = csvHeader;
-            records.forEach(r => {
-                const tagName = getTagNameById(r.tagId);
-                csvContent += `${r.id},${tagName},${r.subtag},${r.start},${r.end},${r.duration},${r.date}\n`;
+        // 弹窗管理
+        function openSettingsModal() {
+            document.getElementById('settingsModal').style.display = 'flex';
+        }
+
+        function openMainTagManager() {
+            closeAllModals();
+            document.getElementById('mainTagManagerModal').style.display = 'flex';
+            renderMainTagEdit();
+        }
+
+        function openSubTagManager() {
+            closeAllModals();
+            document.getElementById('subTagManagerModal').style.display = 'flex';
+        }
+
+        function closeAllModals() {
+            document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
+        }
+
+        // 一级标签管理
+        function renderMainTagEdit() {
+            const container = document.getElementById('mainTagEditContainer');
+            container.innerHTML = '';
+            
+            mainTags.forEach((tag, index) => {
+                const item = document.createElement('div');
+                item.className = 'tag-item-edit';
+                item.innerHTML = `
+                    <input type="text" class="tag-input" value="${tag.name}" data-index="${index}">
+                    <button class="delete-tag-btn" onclick="deleteMainTag(${index})">🗑️</button>
+                `;
+                container.appendChild(item);
             });
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        }
+
+        function addNewMainTag() {
+            const newId = `tag_${Date.now()}`;
+            mainTags.push({ id: newId, name: '新标签' });
+            renderMainTagEdit();
+        }
+
+        function deleteMainTag(index) {
+            if (confirm('确定删除这个标签吗？相关记录不会被删除')) {
+                mainTags.splice(index, 1);
+                renderMainTagEdit();
+            }
+        }
+
+        function saveMainTags() {
+            const inputs = document.querySelectorAll('.tag-input');
+            inputs.forEach(input => {
+                const index = parseInt(input.dataset.index);
+                if (mainTags[index] && input.value.trim()) {
+                    mainTags[index].name = input.value.trim();
+                }
+            });
+            
+            localStorage.setItem('mainTags', JSON.stringify(mainTags));
+            renderMainTags();
+            closeAllModals();
+            alert('一级标签修改成功！');
+        }
+
+        // 数据功能（统计页）
+        // 导出记录（修复中文乱码）
+        function exportAllRecords() {
+            const header = 'ID,一级标签,二级标签,开始时间,结束时间,时长(秒),日期\n';
+            let content = header;
+            
+            records.forEach(r => {
+                const tagName = r.tagName || getTagNameById(r.tagId);
+                // 转义逗号，避免CSV格式错误
+                const safeTag = tagName.replace(/,/g, '，');
+                const safeSubtag = (r.subtag || '').replace(/,/g, '，');
+                
+                content += `${r.id},${safeTag},${safeSubtag},${r.start},${r.end},${r.duration},${r.date}\n`;
+            });
+            
+            // 添加UTF-8 BOM头，解决Excel中文乱码
+            const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+            const blob = new Blob([bom, content], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
+            
             const a = document.createElement('a');
             a.href = url;
             a.download = `时间记录_${new Date().toISOString().split('T')[0]}.csv`;
             a.click();
             URL.revokeObjectURL(url);
         }
-        function clearTodayRecords() {
-            if (confirm('确定清空今日记录？')) {
-                const today = new Date().toISOString().split('T')[0];
-                records = records.filter(r => r.date !== today);
-                localStorage.setItem('timeRecordsV2', JSON.stringify(records));
-                updateTodayStats();
-                updateHistoryStats();
-            }
-        }
 
-        // 数据备份/恢复/同步
+        // 备份数据
         function backupData() {
-            const backupData = { records, tags: statusTags, subtags: subTags, backupTime: new Date().toLocaleString() };
-            const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+            const backup = {
+                records: records,
+                mainTags: mainTags,
+                subTags: subTags,
+                backupTime: new Date().toLocaleString()
+            };
+            
+            const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
             const a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
+            a.href = url;
             a.download = `时间记录备份_${new Date().getTime()}.json`;
             a.click();
-            alert('✅ 备份完成！');
+            URL.revokeObjectURL(url);
+            alert('✅ 数据备份成功！');
         }
+
+        // 恢复数据
         function restoreData(input) {
             const file = input.files[0];
             if (!file) return;
+            
             const reader = new FileReader();
-            reader.onload = e => {
+            reader.onload = function(e) {
                 try {
                     const data = JSON.parse(e.target.result);
-                    if (data.records) {
-                        records = data.records;
-                        localStorage.setItem('timeRecordsV2', JSON.stringify(records));
-                    }
-                    if (data.tags) {
-                        statusTags = data.tags;
-                        localStorage.setItem('statusTagsV2', JSON.stringify(statusTags));
-                    }
-                    if (data.subtags) {
-                        subTags = data.subtags;
-                        localStorage.setItem('subTags', JSON.stringify(subTags));
-                    }
+                    
+                    if (data.records) records = data.records;
+                    if (data.mainTags) mainTags = data.mainTags;
+                    if (data.subTags) subTags = data.subTags;
+                    
+                    // 保存到本地存储
+                    localStorage.setItem('timeRecordsV2', JSON.stringify(records));
+                    localStorage.setItem('mainTags', JSON.stringify(mainTags));
+                    localStorage.setItem('subTags', JSON.stringify(subTags));
+                    
+                    // 更新页面
+                    renderMainTags();
                     updateTodayStats();
                     updateHistoryStats();
-                    alert('✅ 恢复成功！');
-                } catch (err) { alert('❌ 恢复失败：文件格式错误'); }
+                    
+                    alert('✅ 数据恢复成功！');
+                } catch (err) {
+                    alert('❌ 恢复失败：文件格式错误或损坏');
+                }
+                // 清空input值，允许重复选择同一文件
+                input.value = '';
             };
             reader.readAsText(file);
         }
+
+        // 自动同步数据
         function autoSyncData() {
-            const oldKeys = ['timeRecords', 'timeRecordsV2', 'statusTags', 'statusTagsV2', 'subTags'];
-            let allRecords = [];
-            oldKeys.forEach(key => {
+            // 扫描所有可能的旧数据键
+            const keys = ['timeRecords', 'timeRecordsV2', 'mainTags', 'subTags'];
+            let syncCount = 0;
+            
+            keys.forEach(key => {
                 const data = localStorage.getItem(key);
                 if (data) {
                     try {
                         const parsed = JSON.parse(data);
-                        if (Array.isArray(parsed)) allRecords = [...allRecords, ...parsed];
-                    } catch(e) {}
+                        if (key === 'timeRecords' && Array.isArray(parsed)) {
+                            // 兼容旧版timeRecords数据
+                            records = parsed;
+                            syncCount += parsed.length;
+                        } else if (key === 'timeRecordsV2' && Array.isArray(parsed)) {
+                            records = parsed;
+                            syncCount += parsed.length;
+                        } else if (key === 'mainTags' && Array.isArray(parsed)) {
+                            mainTags = parsed;
+                        } else if (key === 'subTags' && typeof parsed === 'object') {
+                            subTags = parsed;
+                        }
+                    } catch (e) {
+                        console.log('同步数据解析失败:', key, e);
+                    }
                 }
             });
-            const uniqueRecords = Array.from(new Map(allRecords.map(r => [r.id, r])).values());
+            
+            // 去重记录
+            const uniqueRecords = Array.from(new Map(records.map(r => [r.id, r])).values());
             records = uniqueRecords;
+            
+            // 保存同步后的数据
+            localStorage.setItem('timeRecordsV2', JSON.stringify(records));
+            localStorage.setItem('mainTags', JSON.stringify(mainTags));
+            localStorage.setItem('subTags', JSON.stringify(subTags));
+            
+            // 更新页面
+            renderMainTags();
+            updateTodayStats();
+            updateHistoryStats();
+            
+            alert(`✅ 自动同步完成！共恢复 ${uniqueRecords.length} 条记录`);
+        }
+
+        // 清空今日记录
+        function clearTodayRecords() {
+            if (!confirm('确定清空今日所有记录吗？此操作不可恢复！')) return;
+            
+            const today = new Date().toISOString().split('T')[0];
+            records = records.filter(r => r.date !== today);
+            
             localStorage.setItem('timeRecordsV2', JSON.stringify(records));
             updateTodayStats();
             updateHistoryStats();
-            alert(`✅ 同步完成！共恢复 ${uniqueRecords.length} 条记录`);
+            
+            alert('🗑️ 今日记录已清空！');
         }
 
-        // 二级标签管理（占位，可后续扩展）
-        function openSubtagManager() { alert('二级标签管理功能可后续扩展'); }
+        // 页面关闭/刷新时停止计时
+        window.onbeforeunload = function() {
+            stopTimer();
+        };
     </script>
 </body>
 </html>
