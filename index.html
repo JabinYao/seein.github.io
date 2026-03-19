@@ -190,6 +190,43 @@
             .sub-status-buttons { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
             .sub-status-btn { min-height: 42px; padding: 8px 4px; font-size: 0.8rem; }
             .btn-manage { min-height: 42px; font-size: 0.8rem; }
+            .card { padding: 16px 14px; border-radius: 18px; margin-bottom: 14px; }
+            .card-header { margin-bottom: 10px; padding-bottom: 8px; }
+            .card-header h2 { font-size: 1.02rem; }
+            .history-controls { gap: 8px; margin-bottom: 12px; }
+            .range-select { min-width: 0; flex: 1; padding: 10px 12px; font-size: 0.9rem; }
+            .chart-toggle { width: 100%; }
+            .chart-toggle-btn { flex: 1; padding: 10px 12px; font-size: 0.88rem; }
+            .history-layout { gap: 12px; }
+            .chart-card { padding: 14px; border-radius: 16px; }
+            .chart-summary { gap: 8px; margin-bottom: 12px; }
+            .metric-card { min-width: 0; flex: 1; padding: 10px 12px; border-radius: 12px; }
+            .metric-label { font-size: 0.76rem; margin-bottom: 4px; }
+            .metric-value { font-size: 1.05rem; }
+            .bar-chart { gap: 10px; }
+            .bar-label { font-size: 0.86rem; }
+            .bar-track { height: 12px; }
+            .bar-value { font-size: 0.82rem; }
+            .pie-wrap { gap: 12px; }
+            .pie-chart { width: min(220px, 62vw); }
+            .chart-legend { gap: 8px; }
+            .legend-label, .legend-value { font-size: 0.82rem; }
+            .grouped-history { gap: 12px; }
+            .history-group-title { font-size: 0.88rem; }
+            .history-list { max-height: none; }
+            .history-item { padding: 10px 0; font-size: 0.84rem; }
+            .history-time { font-size: 0.86rem; }
+            .history-status { font-size: 0.78rem; }
+            .summary-accordion { gap: 10px; }
+            .summary-group-header { padding: 14px 14px; gap: 8px; }
+            .summary-group-name { font-size: 0.92rem; }
+            .summary-group-time { font-size: 0.86rem; }
+            .summary-group-percent { font-size: 0.8rem; }
+            .summary-group-arrow { width: 28px; height: 28px; font-size: 0.9rem; }
+            .summary-group-body { padding: 0 14px 12px; }
+            .summary-subitem { gap: 8px; padding: 10px 0; }
+            .summary-subname { font-size: 0.82rem; }
+            .summary-subtime, .summary-subpercent { font-size: 0.8rem; }
             .bar-row { grid-template-columns: 1fr; }
             .bar-value { text-align: left; }
             .summary-group-header { grid-template-columns: minmax(0, 1fr) auto; }
@@ -381,7 +418,7 @@
             { name: '社交', subTags: ['家人', '朋友', '线上交流'] },
             { name: '学习', subTags: ['阅读', '课程', '练习'] }
         ];
-        const APP_VERSION = '2026.03.23';
+        const APP_VERSION = '2026.03.24';
         const VERSION_FILE_URL = new URL('version.json', window.location.href).toString();
         const UPDATE_CHECK_INTERVAL = 5 * 60 * 1000;
         const UPDATE_DISMISS_KEY = 'timeTrackerDismissedVersion';
@@ -974,6 +1011,7 @@
             const container = document.getElementById('statusButtons');
             if(!container) return;
             container.innerHTML = '';
+            const activePrimary = pendingPrimaryStatus || currentStatus;
             
             tagGroups.forEach(group => {
                 const btn = document.createElement('button');
@@ -981,7 +1019,7 @@
                 btn.dataset.status = group.name;
                 btn.textContent = group.name;
                 btn.onclick = () => selectPrimaryStatus(group.name);
-                if (group.name === currentStatus || group.name === pendingPrimaryStatus) {
+                if (group.name === activePrimary) {
                     btn.classList.add('active');
                 }
                 container.appendChild(btn);
@@ -1140,7 +1178,7 @@
 
             groups.forEach((group, index) => {
                 const wrapper = document.createElement('div');
-                wrapper.className = `summary-group${index === 0 ? ' expanded' : ''}`;
+                wrapper.className = 'summary-group';
                 const childrenHtml = group.children.length > 0
                     ? group.children.map(child => `
                         <div class="summary-subitem">
