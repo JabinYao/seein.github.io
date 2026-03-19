@@ -420,7 +420,7 @@
             { name: '社交', subTags: ['家人', '朋友', '线上交流'] },
             { name: '学习', subTags: ['阅读', '课程', '练习'] }
         ];
-        const APP_VERSION = '2026.03.26';
+        const APP_VERSION = '2026.03.27';
         const VERSION_FILE_URL = new URL('version.json', window.location.href).toString();
         const UPDATE_CHECK_INTERVAL = 5 * 60 * 1000;
         const UPDATE_DISMISS_KEY = 'timeTrackerDismissedVersion';
@@ -714,6 +714,37 @@
             const primary = getPrimaryName(record);
             const secondary = getSecondaryName(record);
             return secondary ? `${primary} / ${secondary}` : primary;
+        }
+
+        function appendRenameNote(record, oldName) {
+            const existing = String(record.categoryRenameNote || '').trim();
+            if (!oldName) return existing;
+            const parts = existing ? existing.split(' / ').map(item => item.trim()).filter(Boolean) : [];
+            if (!parts.includes(oldName)) {
+                parts.push(oldName);
+            }
+            return parts.join(' / ');
+        }
+
+        function renameCategoryInRecords(oldName, newName) {
+            let changed = false;
+            timeRecords = timeRecords.map(record => {
+                const primary = getPrimaryName(record);
+                if (primary !== oldName) {
+                    return record;
+                }
+                changed = true;
+                return {
+                    ...record,
+                    status: newName,
+                    category: newName,
+                    categoryRenameNote: appendRenameNote(record, oldName)
+                };
+            });
+
+            if (changed) {
+                persistRecords();
+            }
         }
 
         function getTagGroupByName(name) {
@@ -1197,6 +1228,7 @@
                 status,
                 category: status,
                 subCategory,
+                categoryRenameNote: '',
                 start: start.toISOString(),
                 end: end.toISOString(),
                 duration: (end - start) / 1000
@@ -1452,6 +1484,7 @@
             }
             
             tagGroups[index].name = newVal;
+            renameCategoryInRecords(oldVal, newVal);
             if (currentStatus === oldVal) {
                 currentStatus = newVal;
                 const statusEl = document.getElementById('currentStatus');
@@ -1587,14 +1620,16 @@
                 return;
             }
             let csvContent = 'data:text/csv;charset=utf-8,\uFEFF';
-            csvContent += 'Status,Start Time,End Time,Duration Seconds,Duration Formatted\n';
+            csvContent += 'Primary Category,Secondary Category,Legacy Category Note,Start Time,End Time,Duration Seconds,Duration Formatted\n';
             const sortedRecords = [...timeRecords].sort((a, b) => new Date(a.start) - new Date(b.start));
             sortedRecords.forEach(function(row) {
                 const startDate = new Date(row.start);
                 const endDate = new Date(row.end);
                 const formatTime = (date) => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')} ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}:${String(date.getSeconds()).padStart(2,'0')}`;
                 const rowStr = [
-                    escapeCsvField(row.status),
+                    escapeCsvField(getPrimaryName(row)),
+                    escapeCsvField(getSecondaryName(row)),
+                    escapeCsvField(row.categoryRenameNote || ''),
                     escapeCsvField(formatTime(startDate)),
                     escapeCsvField(formatTime(endDate)),
                     escapeCsvField(row.duration),
@@ -1641,6 +1676,7 @@
                         status: st,
                         category: st,
                         subCategory: subSt || '',
+                        categoryRenameNote: '',
                         start: s.toISOString(),
                         end: en.toISOString(),
                         duration: (en - s) / 1000
