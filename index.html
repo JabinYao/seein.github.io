@@ -15,7 +15,7 @@
             background-color: #f5f5f5;
             padding-bottom: 80px;
         }
-        /* 标题栏样式（新增更新按钮） */
+        /* 标题栏样式（更新按钮强化） */
         .header {
             background-color: #4169E1;
             color: white;
@@ -39,6 +39,9 @@
             border-radius: 4px;
             font-size: 0.8rem;
             cursor: pointer;
+        }
+        .header .update-btn:hover {
+            background: rgba(255,255,255,0.3);
         }
         .header .settings-btn {
             position: absolute;
@@ -324,7 +327,7 @@
     </style>
 </head>
 <body>
-    <!-- 标题栏（新增一键更新按钮） -->
+    <!-- 标题栏（强化版更新按钮） -->
     <div class="header">
         <button class="update-btn" onclick="updateApp()">🔄 更新</button>
         时间记录工具
@@ -444,6 +447,23 @@
 
         // 初始化
         window.onload = function() {
+            // 第一步：检查是否有更新前的自动备份，如有需要可恢复
+            const autoBackup = localStorage.getItem('auto_backup_before_update');
+            if (autoBackup && !confirm('检测到更新前的自动备份，是否需要恢复？\n（选否则继续使用当前数据）')) {
+                // 不恢复，清除备份标记
+                localStorage.removeItem('auto_backup_before_update');
+            } else if (autoBackup) {
+                const backupData = JSON.parse(autoBackup);
+                records = backupData.records;
+                mainTags = backupData.mainTags;
+                subTags = backupData.subTags;
+                localStorage.setItem('timeRecordsV2', JSON.stringify(records));
+                localStorage.setItem('mainTags', JSON.stringify(mainTags));
+                localStorage.setItem('subTags', JSON.stringify(subTags));
+                localStorage.removeItem('auto_backup_before_update');
+                alert('✅ 已恢复更新前的备份数据！');
+            }
+
             renderMainTags();
             updateTodaySummary(); // 初始化计时页实时汇总
             updateHistoryStats();
@@ -451,11 +471,26 @@
             setInterval(updateTodaySummary, 1000);
         };
 
-        // 新增：一键更新功能（刷新页面+保留数据）
+        // 强化版：一键更新（清空缓存+自动备份+强制刷新）
         function updateApp() {
-            if (confirm('确定更新吗？当前数据会自动保存')) {
-                // 强制刷新页面，保留localStorage数据
+            // 第一步：自动备份所有数据（防止更新丢失）
+            const backup = {
+                records: records,
+                mainTags: mainTags,
+                subTags: subTags,
+                backupTime: new Date().toLocaleString()
+            };
+            localStorage.setItem('auto_backup_before_update', JSON.stringify(backup));
+            
+            // 第二步：确认更新并执行
+            if (confirm('⚠️ 确定更新吗？\n1. 已自动备份数据（可恢复）\n2. 会清空缓存并刷新页面\n3. 确保加载最新功能')) {
+                // 方案1：强制刷新（清空缓存）
                 window.location.reload(true);
+                // 方案2：兜底（新开标签页，确保加载最新代码）
+                setTimeout(() => {
+                    const currentUrl = window.location.href;
+                    window.open(currentUrl, '_self');
+                }, 500);
             }
         }
 
