@@ -421,7 +421,7 @@
             { name: '社交', subTags: ['家人', '朋友', '线上交流'] },
             { name: '学习', subTags: ['阅读', '课程', '练习'] }
         ];
-        const APP_VERSION = '2026.03.28';
+        const APP_VERSION = '2026.03.29';
         const VERSION_FILE_URL = new URL('version.json', window.location.href).toString();
         const UPDATE_CHECK_INTERVAL = 5 * 60 * 1000;
         const UPDATE_DISMISS_KEY = 'timeTrackerDismissedVersion';
@@ -1264,13 +1264,6 @@
             if (groups.length === 0) {
                 accordion.innerHTML = '<div class="empty-state">今天还没有统计数据</div>';
                 return;
-            }
-
-            if (expandedSummaryGroups.size === 0 && currentStatus) {
-                const activeGroup = groups.find(group => group.primary === currentStatus && group.children.length > 0);
-                if (activeGroup) {
-                    expandedSummaryGroups.add(activeGroup.primary);
-                }
             }
 
             groups.forEach(group => {
