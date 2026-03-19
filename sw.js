@@ -1,67 +1,66 @@
-const CACHE_NAME = 'time-tracker-v1';
-const urlsToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json'
+const CACHE_NAME = 'time-tracker-pro-v1'; 
+const ASSETS = [
+  './',
+  './index.html',
+  './manifest.json'
 ];
 
-// 安装Service Worker
-self.addEventListener('install', event => {
+// 1. 安装：缓存核心资源
+self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Opened cache');
-        return cache.addAll(urlsToCache);
-      })
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.addAll(ASSETS);
+    })
   );
+  self.skipWaiting();
 });
 
-// 拦截网络请求
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // 如果缓存中有请求的资源，则返回缓存版本
-        if (response) {
-          return response;
-        }
-        
-        // 否则发起网络请求
-        return fetch(event.request).then(
-          response => {
-            // 检查是否成功获取资源
-            if(!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
-
-            // 克隆响应，因为响应流只能读取一次
-            var responseToCache = response.clone();
-
-            caches.open(CACHE_NAME)
-              .then(cache => {
-                cache.put(event.request, responseToCache);
-              });
-
-            return response;
-          }
-        );
-      })
-  );
-});
-
-// 激活Service Worker
-self.addEventListener('activate', event => {
+// 2. 激活：清理旧缓存
+self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then(cacheNames => {
+    caches.keys().then((keyList) => {
       return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
+        keyList.map((key) => {
+          if (key !== CACHE_NAME) {
+            return caches.delete(key);
           }
         })
       );
     })
   );
-  return self.clients.claim();
+  self.clients.claim();
+});
+
+// 3. 拦截请求：智能策略
+self.addEventListener('fetch', (event) => {
+  // 对主文档 (HTML) 采用 "网络优先" 策略
+  if (event.request.mode === 'navigate' && event.request.method === 'GET') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const responseClone = response.clone();
+          caches.open(CACHE_NAME).then((cache) => {
+            cache.put(event.request, responseClone);
+          });
+          return response;
+        })
+        .catch(() => {
+          return caches.match(event.request);
+        })
+    );
+  } else {
+    // 对其他资源采用 "缓存优先"
+    event.respondWith(
+      caches.match(event.request).then((response) => {
+        return response || fetch(event.request);
+      })
+    );
+  }
+});
+
+// 4. 消息处理
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
