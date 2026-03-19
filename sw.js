@@ -1,4 +1,4 @@
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const STATIC_CACHE = `time-tracker-static-${CACHE_VERSION}`;
 const APP_SHELL = [
   '/',
@@ -50,6 +50,21 @@ self.addEventListener('fetch', event => {
   const isSameOrigin = url.origin === self.location.origin;
 
   if (!isSameOrigin) {
+    return;
+  }
+
+  if (url.pathname.endsWith('/version.json')) {
+    event.respondWith(
+      fetch(request, { cache: 'no-store' })
+        .then(response => {
+          if (response && response.status === 200) {
+            const responseClone = response.clone();
+            caches.open(STATIC_CACHE).then(cache => cache.put(request, responseClone));
+          }
+          return response;
+        })
+        .catch(() => caches.match(request))
+    );
     return;
   }
 
