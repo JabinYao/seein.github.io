@@ -372,6 +372,7 @@
                 <button class="data-btn" onclick="backupData()">📤 备份数据</button>
                 <button class="data-btn" onclick="document.getElementById('fileInput').click()">📥 恢复数据</button>
                 <button class="data-btn" onclick="autoSyncData()">📌 自动同步</button>
+                <button class="data-btn" onclick="cleanInvalidData()">🧹 清理无效数据</button>
                 <input type="file" accept=".json" id="fileInput" onchange="restoreData(this)">
             </div>
         </div>
@@ -561,20 +562,27 @@
             return tag ? tag.name : '未知';
         }
 
-        // 格式化时长
+        // 格式化时长（修复小数问题，取整）
         function formatDuration(seconds) {
-            const h = Math.floor(seconds / 3600);
-            const m = Math.floor((seconds % 3600) / 60);
-            const s = seconds % 60;
+            const totalSeconds = Math.round(seconds);
+            const h = Math.floor(totalSeconds / 3600);
+            const m = Math.floor((totalSeconds % 3600) / 60);
+            const s = totalSeconds % 60;
             if (h > 0) return `${h}小时${m}分${s}秒`;
             if (m > 0) return `${m}分${s}秒`;
             return `${s}秒`;
         }
 
-        // 计时页：今日实时汇总（即时反馈核心）
+        // 计时页：今日实时汇总（修复undefined和NaN）
         function updateTodaySummary() {
             const today = new Date().toISOString().split('T')[0];
-            const todayRecords = records.filter(r => r.date === today);
+            // 过滤掉无效记录（date为空、duration非数字）
+            const todayRecords = records.filter(r => 
+                r.date && 
+                typeof r.duration === 'number' && 
+                !isNaN(r.duration) && 
+                r.date === today
+            );
             const summary = {};
             
             // 汇总已结束的记录
@@ -605,11 +613,18 @@
             document.getElementById('today-summary-content').innerHTML = html;
         }
 
-        // 统计页：历史每日汇总（汇总整理）
+        // 统计页：历史每日汇总（修复undefined和NaN）
         function updateHistoryStats() {
             const dateGroups = {};
+            // 过滤无效记录
+            const validRecords = records.filter(r => 
+                r.date && 
+                typeof r.duration === 'number' && 
+                !isNaN(r.duration)
+            );
+            
             // 按日期+标签分组汇总
-            records.forEach(r => {
+            validRecords.forEach(r => {
                 if (!dateGroups[r.date]) dateGroups[r.date] = { summary: {}, records: {} };
                 const name = r.tagName || getTagNameById(r.tagId);
                 dateGroups[r.date].summary[name] = (dateGroups[r.date].summary[name] || 0) + r.duration;
@@ -653,6 +668,26 @@
             updateTodaySummary();
             updateHistoryStats();
             alert('记录已删除');
+        }
+
+        // 清理无效数据（undefined日期、NaN时长）
+        function cleanInvalidData() {
+            if (!confirm('确定清理所有无效数据吗？（undefined日期、NaN时长的记录会被删除）')) return;
+            
+            const validRecords = records.filter(r => 
+                r.date && 
+                typeof r.duration === 'number' && 
+                !isNaN(r.duration)
+            );
+            
+            const removedCount = records.length - validRecords.length;
+            records = validRecords;
+            
+            localStorage.setItem('timeRecordsV2', JSON.stringify(records));
+            updateTodaySummary();
+            updateHistoryStats();
+            
+            alert(`🧹 清理完成！删除了 ${removedCount} 条无效数据`);
         }
 
         // 页面切换
@@ -727,7 +762,13 @@
         function exportAllRecords() {
             const header = 'ID,一级标签,二级标签,开始时间,结束时间,时长(秒),日期\n';
             let content = header;
-            records.forEach(r => {
+            // 过滤无效数据后导出
+            const validRecords = records.filter(r => 
+                r.date && 
+                typeof r.duration === 'number' && 
+                !isNaN(r.duration)
+            );
+            validRecords.forEach(r => {
                 const t = (r.tagName || getTagNameById(r.tagId)).replace(/,/g, '，');
                 const s = (r.subtag || '').replace(/,/g, '，');
                 content += `${r.id},${t},${s},${r.start},${r.end},${r.duration},${r.date}\n`;
@@ -819,7 +860,13 @@
                 }
             });
             
-            const uniqueRecords = Array.from(new Map(records.map(r => [r.id, r])).values());
+            // 同步后自动过滤无效数据
+            const validRecords = records.filter(r => 
+                r.date && 
+                typeof r.duration === 'number' && 
+                !isNaN(r.duration)
+            );
+            const uniqueRecords = Array.from(new Map(validRecords.map(r => [r.id, r])).values());
             records = uniqueRecords;
             
             localStorage.setItem('timeRecordsV2', JSON.stringify(records));
