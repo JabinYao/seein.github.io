@@ -421,7 +421,7 @@
             { name: '社交', subTags: ['家人', '朋友', '线上交流'] },
             { name: '学习', subTags: ['阅读', '课程', '练习'] }
         ];
-        const APP_VERSION = '2026.03.29';
+        const APP_VERSION = '2026.03.30';
         const VERSION_FILE_URL = new URL('version.json', window.location.href).toString();
         const UPDATE_CHECK_INTERVAL = 5 * 60 * 1000;
         const UPDATE_DISMISS_KEY = 'timeTrackerDismissedVersion';
@@ -634,21 +634,19 @@
             }
 
             setCheckUpdateButtonState('升级中...', true);
-            try {
-                if (serviceWorkerRegistration && typeof serviceWorkerRegistration.update === 'function') {
+            if (serviceWorkerRegistration && typeof serviceWorkerRegistration.update === 'function') {
+                try {
                     await serviceWorkerRegistration.update();
                     if (serviceWorkerRegistration.waiting) {
                         serviceWorkerRegistration.waiting.postMessage({ type: 'SKIP_WAITING' });
                         return;
                     }
+                } catch (error) {
+                    console.error('Apply update via service worker failed:', error);
                 }
-
-                await hardReloadLatestVersion();
-            } catch (error) {
-                console.error('Apply update failed:', error);
-                alert('升级失败，请稍后重试。');
-                setCheckUpdateButtonState('检查更新', false);
             }
+
+            await hardReloadLatestVersion();
         };
 
         function parseStoredJson(key, fallback) {
