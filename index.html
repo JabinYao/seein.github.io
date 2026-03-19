@@ -20,6 +20,15 @@
         .settings-btn:active { background: rgba(255,255,255,0.4); }
 
         .container { flex: 1; overflow-y: auto; padding: 20px; padding-bottom: 80px; }
+        .update-banner { display: none; margin: 0 20px 16px; padding: 14px 16px; border-radius: 14px; background: linear-gradient(135deg, #EEF2FF 0%, #E0F2FE 100%); border: 1px solid #C7D2FE; box-shadow: 0 10px 24px rgba(79,70,229,0.08); align-items: center; justify-content: space-between; gap: 12px; }
+        .update-banner.active { display: flex; }
+        .update-copy { min-width: 0; }
+        .update-title { font-size: 0.95rem; font-weight: 700; color: var(--text); }
+        .update-desc { font-size: 0.82rem; color: var(--text-light); margin-top: 4px; }
+        .update-actions { display: flex; gap: 8px; flex-shrink: 0; }
+        .update-btn { border: none; border-radius: 10px; padding: 9px 12px; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+        .update-btn.primary { background: var(--primary); color: white; }
+        .update-btn.secondary { background: white; color: var(--text); border: 1px solid #D1D5DB; }
         
         .status-card { background: var(--card-bg); border-radius: 16px; padding: 25px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .current-status-label { font-size: 0.9rem; color: var(--text-light); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
@@ -30,6 +39,12 @@
         .status-btn { background: white; border: 2px solid #E5E7EB; color: var(--text); padding: 15px 5px; border-radius: 12px; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: all 0.2s; touch-action: manipulation; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 70px; }
         .status-btn:active { transform: scale(0.95); }
         .status-btn.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); }
+        .sub-status-panel { margin-bottom: 16px; text-align: left; }
+        .sub-status-panel.hidden { display: none; }
+        .sub-status-label { font-size: 0.85rem; color: var(--text-light); margin-bottom: 10px; }
+        .sub-status-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+        .sub-status-btn { background: #EEF2FF; color: var(--primary); border: 1px solid #C7D2FE; border-radius: 999px; padding: 8px 12px; font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+        .sub-status-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
         .status-btn.custom { background: #FFF7ED; border-color: #FDBA74; color: #C2410C; }
         .status-btn.custom.active { background: #C2410C; color: white; border-color: #C2410C; }
         .btn-manage { grid-column: span 3; background: #F9FAFB; border: 1px dashed #D1D5DB; color: var(--text-light); font-size: 0.85rem; padding: 10px; margin-top: 5px; }
@@ -41,6 +56,8 @@
         input[type="text"] { flex: 1; padding: 12px; border: 2px solid #E5E7EB; border-radius: 8px; font-size: 1rem; outline: none; }
         input[type="text"]:focus { border-color: var(--primary); }
         .btn-add { background: var(--primary); color: white; border: none; padding: 0 20px; border-radius: 8px; font-weight: 600; cursor: pointer; }
+        .app-meta { margin-top: 10px; font-size: 0.78rem; color: rgba(255,255,255,0.85); display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+        .meta-link { color: inherit; background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.2); border-radius: 999px; padding: 4px 10px; cursor: pointer; }
         
         .card { background: var(--card-bg); border-radius: 16px; padding: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #F3F4F6; padding-bottom: 10px; }
@@ -54,6 +71,7 @@
         .summary-table tr:last-child td { border-bottom: none; }
         .text-right { text-align: right; }
         .font-bold { font-weight: 700; color: var(--primary); }
+        .summary-section-title { font-size: 0.88rem; color: var(--text-light); margin: 14px 0 8px; }
 
         .history-list { list-style: none; max-height: 300px; overflow-y: auto; }
         .history-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #F3F4F6; font-size: 0.9rem; }
@@ -92,6 +110,12 @@
         .btn-save-tag { background: var(--success); color: white; }
         .btn-del-tag { background: var(--danger); color: white; }
         .btn-cancel-tag { background: #E5E7EB; color: var(--text); }
+        .subtag-group { margin-top: 10px; }
+        .subtag-list { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+        .subtag-chip { display: inline-flex; align-items: center; gap: 6px; background: white; border: 1px solid #E5E7EB; border-radius: 999px; padding: 6px 10px; font-size: 0.78rem; }
+        .subtag-chip button { background: none; border: none; color: var(--danger); cursor: pointer; font-size: 0.85rem; }
+        .subtag-add { display: flex; gap: 8px; margin-top: 10px; }
+        .subtag-add input { flex: 1; padding: 8px 10px; border: 1px solid #E5E7EB; border-radius: 8px; font-size: 0.82rem; }
         
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -104,9 +128,24 @@
         <button class="settings-btn" onclick="openTagManager()">⚙️</button>
         <div class="real-time" id="realTime">00:00:00</div>
         <div class="date" id="currentDate">加载中...</div>
+        <div class="app-meta">
+            <span id="versionLabel">版本 --</span>
+            <button type="button" class="meta-link" onclick="manualCheckForUpdates()">检查更新</button>
+        </div>
     </div>
 
     <div class="container">
+        <div class="update-banner" id="updateBanner">
+            <div class="update-copy">
+                <div class="update-title" id="updateTitle">发现新版本</div>
+                <div class="update-desc" id="updateDesc">点击立即更新以加载最新功能。</div>
+            </div>
+            <div class="update-actions">
+                <button type="button" class="update-btn secondary" onclick="dismissUpdateBanner()">稍后</button>
+                <button type="button" class="update-btn primary" id="updateActionBtn" onclick="applyAppUpdate()">立即更新</button>
+            </div>
+        </div>
+
         <div id="view-timer" class="view-section active">
             <div class="status-card">
                 <div class="current-status-label">当前状态</div>
@@ -116,6 +155,10 @@
                 <div class="status-buttons" id="statusButtons">
                     <!-- 按钮由 JS 动态生成 -->
                 </div>
+                <div class="sub-status-panel hidden" id="subStatusPanel">
+                    <div class="sub-status-label" id="subStatusLabel">请选择二级标签</div>
+                    <div class="sub-status-buttons" id="subStatusButtons"></div>
+                </div>
                 <button class="status-btn btn-manage" onclick="openTagManager()">✏️ 管理状态标签</button>
             </div>
 
@@ -123,6 +166,7 @@
                 <div class="card-header">
                     <h2>今日统计</h2>
                 </div>
+                <div class="summary-section-title">一级标签</div>
                 <table class="summary-table">
                     <thead>
                         <tr>
@@ -132,6 +176,17 @@
                         </tr>
                     </thead>
                     <tbody id="summaryBody"></tbody>
+                </table>
+                <div class="summary-section-title">二级标签</div>
+                <table class="summary-table">
+                    <thead>
+                        <tr>
+                            <th>细分</th>
+                            <th class="text-right">时长</th>
+                            <th class="text-right">占比</th>
+                        </tr>
+                    </thead>
+                    <tbody id="subSummaryBody"></tbody>
                 </table>
             </div>
         </div>
@@ -156,6 +211,9 @@
                         <div class="form-row">
                             <select id="statusSelect" required>
                                 <option value="">选择状态</option>
+                            </select>
+                            <select id="subStatusSelect">
+                                <option value="">选择二级标签（可选）</option>
                             </select>
                         </div>
                         <button type="submit" class="btn-submit">保存记录</button>
@@ -199,29 +257,318 @@
 
         let startTime = null;
         let currentStatus = '';
-        let timeRecords = JSON.parse(localStorage.getItem('timeRecords') || '[]');
+        let currentSubStatus = '';
+        let timeRecords = parseStoredJson('timeRecords', []);
         let timerInterval = null;
         let realTimeInterval = null;
+        let serviceWorkerRegistration = null;
+        let updateReadyWorker = null;
         
-        // 默认标签定义 (作为初始模板，一旦用户自定义后，以 localStorage 为准)
-        const DEFAULT_TAGS = ['工作', '休息', '运动', '社交', '学习'];
+        const DEFAULT_TAG_GROUPS = [
+            { name: '工作', subTags: ['深度工作', '会议', '沟通', '杂务'] },
+            { name: '休息', subTags: ['午休', '放松', '散步'] },
+            { name: '运动', subTags: ['力量', '有氧', '拉伸'] },
+            { name: '社交', subTags: ['家人', '朋友', '线上交流'] },
+            { name: '学习', subTags: ['阅读', '课程', '练习'] }
+        ];
+        const APP_VERSION = '2026.03.20';
+        const VERSION_FILE_URL = 'version.json';
+        const UPDATE_CHECK_INTERVAL = 5 * 60 * 1000;
+        const UPDATE_DISMISS_KEY = 'timeTrackerDismissedVersion';
         
-        // 加载用户自定义的标签列表 (包含重命名后的名字)
-        let statusTags = JSON.parse(localStorage.getItem('statusTags') || JSON.stringify(DEFAULT_TAGS));
+        let tagGroups = loadTagGroups();
         
-        let sessionDateStr = ''; 
+        let sessionDateStr = '';
         
         const BACKGROUND_START_KEY = 'bgStartTime';
         const BACKGROUND_STATUS_KEY = 'bgStatus';
         const BACKGROUND_DATE_KEY = 'bgSessionDate';
 
+        function updateVersionLabel() {
+            const label = document.getElementById('versionLabel');
+            if (label) {
+                label.textContent = `版本 ${APP_VERSION}`;
+            }
+        }
+
+        function compareVersions(a, b) {
+            const normalize = value => String(value || '')
+                .split(/[^0-9A-Za-z]+/)
+                .filter(Boolean)
+                .map(part => /^\d+$/.test(part) ? Number(part) : part);
+            const left = normalize(a);
+            const right = normalize(b);
+            const maxLength = Math.max(left.length, right.length);
+
+            for (let i = 0; i < maxLength; i += 1) {
+                const l = left[i] ?? 0;
+                const r = right[i] ?? 0;
+                if (typeof l === 'number' && typeof r === 'number') {
+                    if (l > r) return 1;
+                    if (l < r) return -1;
+                    continue;
+                }
+                const result = String(l).localeCompare(String(r), undefined, { numeric: true, sensitivity: 'base' });
+                if (result !== 0) return result;
+            }
+            return 0;
+        }
+
+        function showUpdateBanner({ title, description, actionText = '立即更新', worker = null, remoteVersion = '' }) {
+            const banner = document.getElementById('updateBanner');
+            const titleEl = document.getElementById('updateTitle');
+            const descEl = document.getElementById('updateDesc');
+            const actionBtn = document.getElementById('updateActionBtn');
+            if (!banner || !titleEl || !descEl || !actionBtn) return;
+
+            if (remoteVersion) {
+                const dismissedVersion = localStorage.getItem(UPDATE_DISMISS_KEY);
+                if (dismissedVersion === remoteVersion) {
+                    return;
+                }
+            }
+
+            updateReadyWorker = worker;
+            banner.dataset.remoteVersion = remoteVersion;
+            titleEl.textContent = title;
+            descEl.textContent = description;
+            actionBtn.textContent = actionText;
+            banner.classList.add('active');
+        }
+
+        function hideUpdateBanner(clearDismissedVersion = false) {
+            const banner = document.getElementById('updateBanner');
+            if (!banner) return;
+            banner.classList.remove('active');
+            if (clearDismissedVersion) {
+                localStorage.removeItem(UPDATE_DISMISS_KEY);
+            }
+            banner.dataset.remoteVersion = '';
+        }
+
+        window.dismissUpdateBanner = function() {
+            const banner = document.getElementById('updateBanner');
+            const remoteVersion = banner ? banner.dataset.remoteVersion : '';
+            if (remoteVersion) {
+                localStorage.setItem(UPDATE_DISMISS_KEY, remoteVersion);
+            }
+            hideUpdateBanner(false);
+        };
+
+        async function fetchRemoteVersionInfo() {
+            const response = await fetch(`${VERSION_FILE_URL}?t=${Date.now()}`, { cache: 'no-store' });
+            if (!response.ok) {
+                throw new Error(`Version request failed: ${response.status}`);
+            }
+            return response.json();
+        }
+
+        async function checkForUpdates({ silent = true } = {}) {
+            try {
+                const versionInfo = await fetchRemoteVersionInfo();
+                const remoteVersion = versionInfo.version || '';
+                const releaseNotes = versionInfo.notes || '检测到新版本，建议刷新以获取最新优化。';
+                if (remoteVersion && compareVersions(remoteVersion, APP_VERSION) > 0) {
+                    showUpdateBanner({
+                        title: `发现新版本 ${remoteVersion}`,
+                        description: releaseNotes,
+                        actionText: '刷新升级',
+                        remoteVersion
+                    });
+                    return true;
+                }
+                if (!silent) {
+                    alert('当前已经是最新版本。');
+                }
+                return false;
+            } catch (error) {
+                console.error('Check update failed:', error);
+                if (!silent) {
+                    alert('检查更新失败，请稍后再试。');
+                }
+                return false;
+            }
+        }
+
+        function startUpdatePolling() {
+            checkForUpdates({ silent: true });
+            setInterval(() => {
+                checkForUpdates({ silent: true });
+            }, UPDATE_CHECK_INTERVAL);
+        }
+
+        window.manualCheckForUpdates = function() {
+            checkForUpdates({ silent: false });
+            if (serviceWorkerRegistration && typeof serviceWorkerRegistration.update === 'function') {
+                serviceWorkerRegistration.update().catch(error => {
+                    console.error('Manual SW update failed:', error);
+                });
+            }
+        };
+
+        function handleServiceWorkerUpdate(worker) {
+            showUpdateBanner({
+                title: '发现可应用更新',
+                description: '新版本资源已下载完成，点击立即更新即可切换。',
+                actionText: '立即更新',
+                worker
+            });
+        }
+
+        window.applyAppUpdate = function() {
+            if (updateReadyWorker) {
+                updateReadyWorker.postMessage({ type: 'SKIP_WAITING' });
+                return;
+            }
+            window.location.reload();
+        };
+
+        function parseStoredJson(key, fallback) {
+            try {
+                const raw = localStorage.getItem(key);
+                if (!raw) return structuredClone(fallback);
+                const parsed = JSON.parse(raw);
+                return parsed ?? structuredClone(fallback);
+            } catch (error) {
+                console.error(`Failed to parse ${key}:`, error);
+                return structuredClone(fallback);
+            }
+        }
+
+        function cloneDefaultTagGroups() {
+            return DEFAULT_TAG_GROUPS.map(group => ({
+                name: group.name,
+                subTags: [...group.subTags]
+            }));
+        }
+
+        function normalizeTagGroups(rawGroups) {
+            if (!Array.isArray(rawGroups) || rawGroups.length === 0) {
+                return cloneDefaultTagGroups();
+            }
+
+            const normalized = rawGroups
+                .map(group => {
+                    if (typeof group === 'string') {
+                        return { name: group, subTags: [] };
+                    }
+                    if (!group || typeof group.name !== 'string') {
+                        return null;
+                    }
+                    return {
+                        name: group.name.trim(),
+                        subTags: Array.isArray(group.subTags)
+                            ? group.subTags.map(item => String(item).trim()).filter(Boolean)
+                            : []
+                    };
+                })
+                .filter(group => group && group.name);
+
+            return normalized.length > 0 ? normalized : cloneDefaultTagGroups();
+        }
+
+        function loadTagGroups() {
+            const storedGroups = parseStoredJson('tagGroups', null);
+            if (storedGroups) {
+                return normalizeTagGroups(storedGroups);
+            }
+            const legacyTags = parseStoredJson('statusTags', null);
+            if (Array.isArray(legacyTags) && legacyTags.length > 0) {
+                return normalizeTagGroups(legacyTags.map(name => ({ name, subTags: [] })));
+            }
+            return cloneDefaultTagGroups();
+        }
+
+        function getPrimaryName(record) {
+            return record.category || record.status || '';
+        }
+
+        function getSecondaryName(record) {
+            return record.subCategory || '';
+        }
+
+        function getDisplayStatus(record) {
+            const primary = getPrimaryName(record);
+            const secondary = getSecondaryName(record);
+            return secondary ? `${primary} / ${secondary}` : primary;
+        }
+
+        function getTagGroupByName(name) {
+            return tagGroups.find(group => group.name === name) || null;
+        }
+
+        function getCurrentStatusLabel() {
+            return currentSubStatus ? `${currentStatus} / ${currentSubStatus}` : currentStatus;
+        }
+
+        function persistRecords() {
+            localStorage.setItem('timeRecords', JSON.stringify(timeRecords));
+        }
+
+        function persistTags() {
+            localStorage.setItem('tagGroups', JSON.stringify(tagGroups));
+        }
+
+        function getTodayBounds() {
+            const start = new Date();
+            start.setHours(0, 0, 0, 0);
+            const end = new Date(start);
+            end.setDate(end.getDate() + 1);
+            return { start, end };
+        }
+
+        function getActiveRecord(now = new Date()) {
+            if (!startTime || !currentStatus) return null;
+            if (now <= startTime) return null;
+            return {
+                status: currentStatus,
+                category: currentStatus,
+                subCategory: currentSubStatus || '',
+                start: startTime.toISOString(),
+                end: now.toISOString(),
+                duration: (now - startTime) / 1000,
+                isActive: true
+            };
+        }
+
+        function getTodayRecords() {
+            const { start, end } = getTodayBounds();
+            const savedRecords = timeRecords.filter(record => {
+                const recordStart = new Date(record.start);
+                return recordStart >= start && recordStart < end;
+            });
+            const activeRecord = getActiveRecord();
+            if (activeRecord && new Date(activeRecord.start) >= start) {
+                savedRecords.push(activeRecord);
+            }
+            return savedRecords;
+        }
+
+        function syncRunningState() {
+            if (startTime && currentStatus) {
+                localStorage.setItem(BACKGROUND_START_KEY, startTime.toISOString());
+                localStorage.setItem(BACKGROUND_STATUS_KEY, JSON.stringify({
+                    category: currentStatus,
+                    subCategory: currentSubStatus || ''
+                }));
+                localStorage.setItem(BACKGROUND_DATE_KEY, sessionDateStr);
+                return;
+            }
+            localStorage.removeItem(BACKGROUND_START_KEY);
+            localStorage.removeItem(BACKGROUND_STATUS_KEY);
+            localStorage.removeItem(BACKGROUND_DATE_KEY);
+        }
+
         function init() {
+            updateVersionLabel();
             renderStatusButtons();
             updateStatusSelectOptions();
             recoverBackgroundState();
             startRealTimeClock();
             startTimer();
             registerServiceWorker();
+            startUpdatePolling();
+            loadTodayRecords();
             
             const now = new Date();
             now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -232,7 +579,7 @@
                 const start = new Date(now.getTime() - 3600000);
                 startTimeInput.value = start.toISOString().slice(0,16);
             }
-            console.log("App initialized with tags:", statusTags);
+            console.log('App initialized with tags:', tagGroups);
         }
 
         function getTodayDateString() {
@@ -242,41 +589,64 @@
 
         function recoverBackgroundState() {
             const bgStart = localStorage.getItem(BACKGROUND_START_KEY);
-            const bgStatus = localStorage.getItem(BACKGROUND_STATUS_KEY);
+            const bgStatusRaw = localStorage.getItem(BACKGROUND_STATUS_KEY);
             const bgDate = localStorage.getItem(BACKGROUND_DATE_KEY);
             const todayStr = getTodayDateString();
+            let bgStatus = '';
+            let bgSubStatus = '';
+
+            if (bgStatusRaw) {
+                try {
+                    const parsedStatus = JSON.parse(bgStatusRaw);
+                    if (parsedStatus && typeof parsedStatus === 'object') {
+                        bgStatus = parsedStatus.category || parsedStatus.status || '';
+                        bgSubStatus = parsedStatus.subCategory || '';
+                    } else {
+                        bgStatus = String(parsedStatus || '');
+                    }
+                } catch (error) {
+                    bgStatus = bgStatusRaw;
+                }
+            }
             
             if (bgStart && bgStatus) {
                 const startObj = new Date(bgStart);
-                sessionDateStr = todayStr; 
+                sessionDateStr = todayStr;
                 
                 if (bgDate && bgDate !== todayStr) {
                     const endOfYesterday = new Date(startObj);
                     endOfYesterday.setHours(23, 59, 59, 999);
                     if (endOfYesterday > startObj) {
-                         saveRecord(bgStatus, startObj, endOfYesterday);
+                         saveRecord(bgStatus, startObj, endOfYesterday, { refresh: false, subCategory: bgSubStatus });
                     }
                     const todayStart = new Date(todayStr + 'T00:00:00');
                     startTime = todayStart;
                     currentStatus = bgStatus;
+                    currentSubStatus = bgSubStatus;
                 } else {
                     startTime = startObj;
                     currentStatus = bgStatus;
+                    currentSubStatus = bgSubStatus;
                 }
 
                 const statusEl = document.getElementById('currentStatus');
-                if(statusEl) statusEl.textContent = currentStatus;
-                highlightStatus(currentStatus);
+                if(statusEl) statusEl.textContent = getCurrentStatusLabel();
+                highlightStatus(currentStatus, currentSubStatus);
+                renderSubStatusButtons(currentStatus);
+                syncRunningState();
             } else {
                 sessionDateStr = todayStr;
             }
         }
 
-        function highlightStatus(status) {
+        function highlightStatus(status, subStatus = '') {
              const btns = document.querySelectorAll('.status-btn[data-status]');
              btns.forEach(btn => {
-                 if(btn.dataset.status === status) btn.classList.add('active');
-                 else btn.classList.remove('active');
+                 btn.classList.toggle('active', btn.dataset.status === status);
+             });
+             const subBtns = document.querySelectorAll('.sub-status-btn[data-sub-status]');
+             subBtns.forEach(btn => {
+                 btn.classList.toggle('active', btn.dataset.subStatus === subStatus);
              });
         }
 
@@ -304,12 +674,9 @@
                         handleDayChange(now);
                     }
                     updateTimerDisplay();
-                    if(startTime && currentStatus) {
-                        localStorage.setItem(BACKGROUND_START_KEY, startTime.toISOString());
-                        localStorage.setItem(BACKGROUND_STATUS_KEY, currentStatus);
-                        localStorage.setItem(BACKGROUND_DATE_KEY, sessionDateStr);
-                    }
-                } catch (e) { console.error("Timer loop error:", e); }
+                    syncRunningState();
+                    loadTodayRecords();
+                } catch (e) { console.error('Timer loop error:', e); }
             }, 1000);
         }
 
@@ -319,13 +686,13 @@
             endOfYesterday.setHours(0, 0, 0, 0);
             endOfYesterday.setMilliseconds(-1);
             if (endOfYesterday > startTime) {
-                saveRecord(currentStatus, startTime, endOfYesterday);
+                saveRecord(currentStatus, startTime, endOfYesterday, { refresh: false });
             }
             const startOfToday = new Date(now);
             startOfToday.setHours(0, 0, 0, 0);
             startTime = startOfToday;
             sessionDateStr = getTodayDateString();
-            console.log("Auto day change handled.");
+            console.log('Auto day change handled.');
         }
 
         function updateTimerDisplay() {
@@ -340,101 +707,211 @@
         }
 
         function formatDuration(totalSeconds) {
-            const hours = Math.floor(totalSeconds / 3600);
-            const minutes = Math.floor((totalSeconds % 3600) / 60);
-            const seconds = totalSeconds % 60;
+            const safeSeconds = Math.max(0, Math.floor(totalSeconds));
+            const hours = Math.floor(safeSeconds / 3600);
+            const minutes = Math.floor((safeSeconds % 3600) / 60);
+            const seconds = safeSeconds % 60;
             return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
         }
 
-        // 渲染主界面按钮
         function renderStatusButtons() {
             const container = document.getElementById('statusButtons');
             if(!container) return;
-            // 保留最后的“管理”按钮，先清空其他
-            const manageBtn = container.querySelector('.btn-manage');
             container.innerHTML = '';
             
-            statusTags.forEach(tag => {
+            tagGroups.forEach(group => {
                 const btn = document.createElement('button');
                 btn.className = 'status-btn';
-                // 简单的判断：如果是默认集里的可能是内置，这里统一视为可点击，样式靠 JS 控制 active
-                btn.dataset.status = tag;
-                btn.textContent = tag;
-                btn.onclick = () => changeStatus(tag);
+                btn.dataset.status = group.name;
+                btn.textContent = group.name;
+                btn.onclick = () => selectPrimaryStatus(group.name);
+                if (group.name === currentStatus) {
+                    btn.classList.add('active');
+                }
                 container.appendChild(btn);
             });
-            if(manageBtn) container.appendChild(manageBtn);
         }
 
-        // 更新下拉菜单
+        function renderSubStatusButtons(primaryStatus) {
+            const panel = document.getElementById('subStatusPanel');
+            const label = document.getElementById('subStatusLabel');
+            const container = document.getElementById('subStatusButtons');
+            if (!panel || !label || !container) return;
+
+            const group = getTagGroupByName(primaryStatus);
+            const subTags = group && Array.isArray(group.subTags) ? group.subTags : [];
+            container.innerHTML = '';
+
+            if (!primaryStatus || subTags.length === 0) {
+                panel.classList.add('hidden');
+                return;
+            }
+
+            label.textContent = `${primaryStatus} 的二级标签`;
+            subTags.forEach(subTag => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'sub-status-btn';
+                btn.dataset.subStatus = subTag;
+                btn.textContent = subTag;
+                btn.onclick = () => changeStatus(primaryStatus, subTag);
+                if (subTag === currentSubStatus && currentStatus === primaryStatus) {
+                    btn.classList.add('active');
+                }
+                container.appendChild(btn);
+            });
+
+            panel.classList.remove('hidden');
+        }
+
         function updateStatusSelectOptions() {
             const sel = document.getElementById('statusSelect');
+            const subSel = document.getElementById('subStatusSelect');
             if(!sel) return;
-            sel.innerHTML = '<option value="">选择状态</option>';
-            statusTags.forEach(s => {
+            sel.innerHTML = '<option value="">Select status</option>';
+            tagGroups.forEach(group => {
                 const op = document.createElement('option');
-                op.value = s; op.textContent = s;
+                op.value = group.name;
+                op.textContent = group.name;
                 sel.appendChild(op);
             });
+            if (subSel) {
+                updateSubStatusSelectOptions(sel.value);
+            }
         }
 
-        window.changeStatus = function(status) {
+        function updateSubStatusSelectOptions(primaryStatus, selectedValue = '') {
+            const subSel = document.getElementById('subStatusSelect');
+            if (!subSel) return;
+            subSel.innerHTML = '<option value="">选择二级标签（可选）</option>';
+            const group = getTagGroupByName(primaryStatus);
+            const subTags = group && Array.isArray(group.subTags) ? group.subTags : [];
+            subTags.forEach(subTag => {
+                const op = document.createElement('option');
+                op.value = subTag;
+                op.textContent = subTag;
+                if (subTag === selectedValue) {
+                    op.selected = true;
+                }
+                subSel.appendChild(op);
+            });
+            subSel.disabled = subTags.length === 0;
+        }
+
+        window.selectPrimaryStatus = function(status) {
+            const group = getTagGroupByName(status);
+            const hasSubTags = group && Array.isArray(group.subTags) && group.subTags.length > 0;
+            if (hasSubTags) {
+                currentStatus = status;
+                currentSubStatus = '';
+                const statusEl = document.getElementById('currentStatus');
+                if (statusEl) statusEl.textContent = `${status} / 待选择二级标签`;
+                highlightStatus(status, '');
+                renderSubStatusButtons(status);
+                return;
+            }
+            changeStatus(status, '');
+        }
+
+        window.changeStatus = function(status, subStatus = '') {
             try {
+                if (status === currentStatus && subStatus === currentSubStatus && startTime) {
+                    return;
+                }
                 if (startTime && currentStatus) {
-                    saveRecord(currentStatus, startTime, new Date());
+                    saveRecord(currentStatus, startTime, new Date(), { refresh: false });
                 }
                 currentStatus = status;
+                currentSubStatus = subStatus || '';
                 startTime = new Date();
                 sessionDateStr = getTodayDateString();
                 
                 const statusEl = document.getElementById('currentStatus');
                 const timerEl = document.getElementById('timer');
-                if(statusEl) statusEl.textContent = status;
+                if(statusEl) statusEl.textContent = getCurrentStatusLabel();
                 if(timerEl) timerEl.textContent = '00:00:00';
                 
-                highlightStatus(status);
-                localStorage.setItem(BACKGROUND_START_KEY, startTime.toISOString());
-                localStorage.setItem(BACKGROUND_STATUS_KEY, currentStatus);
-                localStorage.setItem(BACKGROUND_DATE_KEY, sessionDateStr);
+                highlightStatus(status, currentSubStatus);
+                renderSubStatusButtons(status);
+                syncRunningState();
                 loadTodayRecords();
-            } catch (e) { console.error("Change status error:", e); alert("切换失败"); }
+            } catch (e) {
+                console.error('Change status error:', e);
+                alert('Failed to switch status');
+            }
         };
 
-        function saveRecord(status, start, end) {
+        function saveRecord(status, start, end, options = {}) {
+            const { refresh = true, subCategory = currentSubStatus || '' } = options;
             if (end <= start) return;
-            const record = { status, start: start.toISOString(), end: end.toISOString(), duration: (end - start) / 1000 };
+            const record = {
+                status,
+                category: status,
+                subCategory,
+                start: start.toISOString(),
+                end: end.toISOString(),
+                duration: (end - start) / 1000
+            };
             timeRecords.push(record);
-            localStorage.setItem('timeRecords', JSON.stringify(timeRecords));
-            loadTodayRecords();
+            persistRecords();
+            if (refresh) {
+                loadTodayRecords();
+            }
         }
 
         function loadTodayRecords() {
             try {
-                const today = new Date(); today.setHours(0,0,0,0);
-                const todayRecords = timeRecords.filter(r => new Date(r.start) >= today);
+                const todayRecords = getTodayRecords();
                 updateSummary(todayRecords);
                 updateHistory(todayRecords);
-            } catch (e) { console.error("Load records error:", e); }
+            } catch (e) {
+                console.error('Load records error:', e);
+            }
         }
 
         function updateSummary(records) {
             const summaryBody = document.getElementById('summaryBody');
-            if (!summaryBody) return;
+            const subSummaryBody = document.getElementById('subSummaryBody');
+            if (!summaryBody || !subSummaryBody) return;
             summaryBody.innerHTML = '';
+            subSummaryBody.innerHTML = '';
             if (records.length === 0) {
-                summaryBody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #999; padding: 20px;">暂无数据</td></tr>';
+                summaryBody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #999; padding: 20px;">No data yet</td></tr>';
+                subSummaryBody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #999; padding: 20px;">No detail data yet</td></tr>';
                 return;
             }
-            const statusTotals = {};
-            records.forEach(r => { statusTotals[r.status] = (statusTotals[r.status] || 0) + r.duration; });
-            const total = Object.values(statusTotals).reduce((a,b)=>a+b, 0);
-            const sortedStatuses = Object.entries(statusTotals).sort((a,b) => b[1] - a[1]);
+            const primaryTotals = {};
+            const secondaryTotals = {};
+            records.forEach(r => {
+                const primary = getPrimaryName(r);
+                const secondary = getSecondaryName(r);
+                primaryTotals[primary] = (primaryTotals[primary] || 0) + r.duration;
+                if (secondary) {
+                    const key = `${primary} / ${secondary}`;
+                    secondaryTotals[key] = (secondaryTotals[key] || 0) + r.duration;
+                }
+            });
+            const total = Object.values(primaryTotals).reduce((a,b)=>a+b, 0);
+            const sortedPrimary = Object.entries(primaryTotals).sort((a,b) => b[1] - a[1]);
 
-            for (const [status, duration] of sortedStatuses) {
+            for (const [status, duration] of sortedPrimary) {
                 const row = document.createElement('tr');
                 const percent = total > 0 ? ((duration/total)*100).toFixed(1) : '0.0';
-                row.innerHTML = `<td>${status}</td><td class="text-right font-bold">${formatDuration(Math.floor(duration))}</td><td class="text-right">${percent}%</td>`;
+                row.innerHTML = `<td>${status}</td><td class="text-right font-bold">${formatDuration(duration)}</td><td class="text-right">${percent}%</td>`;
                 summaryBody.appendChild(row);
+            }
+
+            const sortedSecondary = Object.entries(secondaryTotals).sort((a,b) => b[1] - a[1]);
+            if (sortedSecondary.length === 0) {
+                subSummaryBody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: #999; padding: 20px;">旧数据暂无二级标签，新记录会在这里细分展示</td></tr>';
+                return;
+            }
+
+            for (const [status, duration] of sortedSecondary) {
+                const row = document.createElement('tr');
+                const percent = total > 0 ? ((duration / total) * 100).toFixed(1) : '0.0';
+                row.innerHTML = `<td>${status}</td><td class="text-right font-bold">${formatDuration(duration)}</td><td class="text-right">${percent}%</td>`;
+                subSummaryBody.appendChild(row);
             }
         }
 
@@ -443,34 +920,36 @@
             if (!list) return;
             list.innerHTML = '';
             if (records.length === 0) {
-                list.innerHTML = '<li style="text-align:center;color:#999;padding:20px;">暂无记录</li>';
+                list.innerHTML = '<li style="text-align:center;color:#999;padding:20px;">No records yet</li>';
                 return;
             }
             [...records].sort((a,b)=>new Date(b.start)-new Date(a.start)).forEach(r => {
                 const li = document.createElement('li');
                 li.className = 'history-item';
-                const s = new Date(r.start), e = new Date(r.end);
+                const s = new Date(r.start);
+                const e = new Date(r.end);
                 const timeStr = `${s.getHours().toString().padStart(2,'0')}:${s.getMinutes().toString().padStart(2,'0')} - ${e.getHours().toString().padStart(2,'0')}:${e.getMinutes().toString().padStart(2,'0')}`;
+                const actionHtml = r.isActive
+                    ? '<span style="color:#10B981;font-size:0.85rem;font-weight:600;">Active</span>'
+                    : `<button class="delete-btn" onclick="deleteRecord('${r.start}')">&times;</button>`;
                 li.innerHTML = `
                     <div class="history-info">
-                        <div class="history-time">${timeStr} <span style="font-weight:normal; color:#666;">(${formatDuration(Math.floor(r.duration))})</span></div>
-                        <div class="history-status">${r.status}</div>
+                        <div class="history-time">${timeStr} <span style="font-weight:normal; color:#666;">(${formatDuration(r.duration)})</span></div>
+                        <div class="history-status">${getDisplayStatus(r)}</div>
                     </div>
-                    <button class="delete-btn" onclick="deleteRecord('${r.start}')">&times;</button>
+                    ${actionHtml}
                 `;
                 list.appendChild(li);
             });
         }
 
         window.deleteRecord = function(startIso) {
-            if(confirm('确定删除这条记录吗？')) {
+            if(confirm('Delete this record?')) {
                 timeRecords = timeRecords.filter(r => r.start !== startIso);
-                localStorage.setItem('timeRecords', JSON.stringify(timeRecords));
+                persistRecords();
                 loadTodayRecords();
             }
         };
-
-        // --- 标签管理逻辑 ---
 
         window.openTagManager = function() {
             const modal = document.getElementById('tagModal');
@@ -478,17 +957,34 @@
             if(!modal || !container) return;
             
             container.innerHTML = '';
-            statusTags.forEach((tag, index) => {
+            tagGroups.forEach((group, index) => {
                 const item = document.createElement('div');
                 item.className = 'tag-item';
-                // 默认前5个不允许删除（可选逻辑，这里设定为都可以删除，但给个提示）
-                const isDefault = index < 5; 
+                const isDefault = index < DEFAULT_TAG_GROUPS.length;
+                const subTagHtml = (group.subTags || []).map((subTag, subIndex) => `
+                    <span class="subtag-chip">
+                        ${subTag}
+                        <button type="button" onclick="deleteSubTag(${index}, ${subIndex})">&times;</button>
+                    </span>
+                `).join('');
                 
                 item.innerHTML = `
-                    <input type="text" value="${tag}" id="tag-input-${index}" ${isDefault ? 'placeholder="内置标签"' : ''}>
-                    <div class="tag-actions">
-                        <button class="btn-tag-action btn-save-tag" onclick="saveTagChange(${index})">保存</button>
-                        ${!isDefault ? `<button class="btn-tag-action btn-del-tag" onclick="deleteTag(${index})">删除</button>` : ''}
+                    <div style="width:100%;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                            <input type="text" value="${group.name}" id="tag-input-${index}" ${isDefault ? 'placeholder="Built-in tag"' : ''}>
+                            <div class="tag-actions">
+                                <button class="btn-tag-action btn-save-tag" onclick="saveTagChange(${index})">保存</button>
+                                ${tagGroups.length > 1 ? `<button class="btn-tag-action btn-del-tag" onclick="deleteTag(${index})">删除</button>` : ''}
+                            </div>
+                        </div>
+                        <div class="subtag-group">
+                            <div style="font-size:0.78rem;color:#6B7280;">二级标签</div>
+                            <div class="subtag-list">${subTagHtml || '<span style="font-size:0.78rem;color:#9CA3AF;">暂无二级标签</span>'}</div>
+                            <div class="subtag-add">
+                                <input type="text" id="subtag-input-${index}" placeholder="新增二级标签">
+                                <button class="btn-tag-action btn-save-tag" onclick="addSubTag(${index})">添加</button>
+                            </div>
+                        </div>
                     </div>
                 `;
                 container.appendChild(item);
@@ -499,7 +995,6 @@
 
         window.closeTagManager = function() {
             document.getElementById('tagModal').classList.remove('active');
-            // 关闭时重新渲染主界面，确保显示最新名字
             renderStatusButtons();
             updateStatusSelectOptions();
         };
@@ -508,27 +1003,44 @@
             const input = document.getElementById(`tag-input-${index}`);
             if(!input) return;
             const newVal = input.value.trim();
-            if(!newVal) { alert("标签名不能为空"); return; }
+            const oldVal = tagGroups[index].name;
+            if(!newVal) {
+                alert('Tag name is required');
+                return;
+            }
+            if (newVal !== oldVal && tagGroups.some(group => group.name === newVal)) {
+                alert('Tag name must be unique');
+                return;
+            }
             
-            // 更新数组
-            statusTags[index] = newVal;
-            localStorage.setItem('statusTags', JSON.stringify(statusTags));
+            tagGroups[index].name = newVal;
+            if (currentStatus === oldVal) {
+                currentStatus = newVal;
+                const statusEl = document.getElementById('currentStatus');
+                if (statusEl) statusEl.textContent = getCurrentStatusLabel();
+                syncRunningState();
+            }
+            persistTags();
             
-            alert("标签已更新！\n注意：历史数据中的旧名称不会改变，新记录将使用新名称。");
-            
-            // 如果当前正在使用的状态名被改了，同步更新当前状态显示（可选体验优化）
-            // 这里我们选择不自动改当前 running 的状态名，以免打断计时逻辑，
-            // 或者您可以选择：如果 currentStatus 等于旧名字，则更新为 newVal
-            // 为了简单和安全，我们只在下次点击时生效，或者手动刷新
+            alert('Tag updated. Future records will use the new name.');
             renderStatusButtons();
             updateStatusSelectOptions();
+            openTagManager();
         };
 
         window.deleteTag = function(index) {
-            if(confirm("确定删除此标签吗？\n删除后该标签将从按钮列表移除，但历史数据保留。")) {
-                statusTags.splice(index, 1);
-                localStorage.setItem('statusTags', JSON.stringify(statusTags));
-                openTagManager(); // 重新渲染列表
+            const tagName = tagGroups[index].name;
+            if (tagName === currentStatus) {
+                alert('Switch away from the active tag before deleting it.');
+                return;
+            }
+            if(confirm('Delete this tag? Historical records will be kept.')) {
+                tagGroups.splice(index, 1);
+                if (tagGroups.length === 0) {
+                    tagGroups = cloneDefaultTagGroups();
+                }
+                persistTags();
+                openTagManager();
                 renderStatusButtons();
                 updateStatusSelectOptions();
             }
@@ -539,14 +1051,64 @@
             if(!input) return;
             const val = input.value.trim();
             if(!val) return;
-            if(statusTags.includes(val)) { alert("已存在该标签"); return; }
+            if(tagGroups.some(group => group.name === val)) {
+                alert('Tag already exists');
+                return;
+            }
             
-            statusTags.push(val);
-            localStorage.setItem('statusTags', JSON.stringify(statusTags));
+            tagGroups.push({ name: val, subTags: [] });
+            persistTags();
             input.value = '';
             openTagManager();
             renderStatusButtons();
             updateStatusSelectOptions();
+        };
+
+        window.addSubTag = function(groupIndex) {
+            const input = document.getElementById(`subtag-input-${groupIndex}`);
+            if (!input) return;
+            const value = input.value.trim();
+            if (!value) return;
+            const group = tagGroups[groupIndex];
+            if (!group) return;
+            if ((group.subTags || []).includes(value)) {
+                alert('二级标签不能重复');
+                return;
+            }
+            group.subTags = group.subTags || [];
+            group.subTags.push(value);
+            persistTags();
+            input.value = '';
+            openTagManager();
+            renderStatusButtons();
+            updateStatusSelectOptions();
+            if (currentStatus === group.name) {
+                renderSubStatusButtons(group.name);
+            }
+        };
+
+        window.deleteSubTag = function(groupIndex, subIndex) {
+            const group = tagGroups[groupIndex];
+            if (!group || !Array.isArray(group.subTags)) return;
+            const subTagName = group.subTags[subIndex];
+            if (currentStatus === group.name && currentSubStatus === subTagName) {
+                alert('当前正在使用这个二级标签，请先切换状态。');
+                return;
+            }
+            group.subTags.splice(subIndex, 1);
+            persistTags();
+            openTagManager();
+            renderStatusButtons();
+            updateStatusSelectOptions();
+            if (currentStatus === group.name) {
+                if (currentSubStatus === subTagName) {
+                    currentSubStatus = '';
+                }
+                const statusEl = document.getElementById('currentStatus');
+                if (statusEl) statusEl.textContent = getCurrentStatusLabel() || '未开始';
+                renderSubStatusButtons(group.name);
+                highlightStatus(currentStatus, currentSubStatus);
+            }
         };
 
         window.switchView = function(viewName) {
@@ -556,47 +1118,74 @@
             const navEl = document.getElementById(`nav-${viewName}`);
             if(viewEl) viewEl.classList.add('active');
             if(navEl) navEl.classList.add('active');
-            if(viewName === 'history') loadTodayRecords();
+            loadTodayRecords();
         };
 
+        function escapeCsvField(value) {
+            return `"${String(value).replace(/"/g, '""')}"`;
+        }
+
         window.exportToCSV = function() {
-            if (timeRecords.length === 0) { alert('暂无数据可导出'); return; }
-            let csvContent = "data:text/csv;charset=utf-8,\uFEFF"; 
-            csvContent += "状态,开始时间,结束时间,持续时长(秒),持续时长(格式化)\n";
+            if (timeRecords.length === 0) {
+                alert('No data to export');
+                return;
+            }
+            let csvContent = 'data:text/csv;charset=utf-8,\uFEFF';
+            csvContent += 'Status,Start Time,End Time,Duration Seconds,Duration Formatted\n';
             const sortedRecords = [...timeRecords].sort((a, b) => new Date(a.start) - new Date(b.start));
             sortedRecords.forEach(function(row) {
                 const startDate = new Date(row.start);
                 const endDate = new Date(row.end);
                 const formatTime = (date) => `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')} ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}:${String(date.getSeconds()).padStart(2,'0')}`;
-                const rowStr = [`"${row.status}"`, formatTime(startDate), formatTime(endDate), row.duration, formatDuration(Math.floor(row.duration))].join(",");
-                csvContent += rowStr + "\n";
+                const rowStr = [
+                    escapeCsvField(row.status),
+                    escapeCsvField(formatTime(startDate)),
+                    escapeCsvField(formatTime(endDate)),
+                    escapeCsvField(row.duration),
+                    escapeCsvField(formatDuration(row.duration))
+                ].join(',');
+                csvContent += rowStr + '\n';
             });
             const encodedUri = encodeURI(csvContent);
-            const link = document.createElement("a");
-            const dateStr = new Date().toISOString().slice(0,10).replace(/-/g,"");
-            link.setAttribute("href", encodedUri);
-            link.setAttribute("download", `时间记录_${dateStr}.csv`);
+            const link = document.createElement('a');
+            const dateStr = new Date().toISOString().slice(0,10).replace(/-/g,'');
+            link.setAttribute('href', encodedUri);
+            link.setAttribute('download', `time-records_${dateStr}.csv`);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
         };
-
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('manualForm');
+            const statusSelect = document.getElementById('statusSelect');
+            if (statusSelect) {
+                statusSelect.addEventListener('change', function() {
+                    updateSubStatusSelectOptions(this.value);
+                });
+            }
             if(form) {
                 form.addEventListener('submit', function(e){
                     e.preventDefault();
                     const sVal = document.getElementById('startTime').value;
                     const eVal = document.getElementById('endTime').value;
                     const st = document.getElementById('statusSelect').value;
+                    const subSt = document.getElementById('subStatusSelect').value;
                     if(!sVal || !eVal || !st) { alert('请填写完整信息'); return; }
                     const s = new Date(sVal);
                     const en = new Date(eVal);
                     if(s >= en) { alert('结束时间必须晚于开始时间'); return; }
-                    timeRecords.push({status:st, start:s.toISOString(), end:en.toISOString(), duration:(en-s)/1000});
-                    localStorage.setItem('timeRecords', JSON.stringify(timeRecords));
+                    timeRecords.push({
+                        status: st,
+                        category: st,
+                        subCategory: subSt || '',
+                        start: s.toISOString(),
+                        end: en.toISOString(),
+                        duration: (en - s) / 1000
+                    });
+                    persistRecords();
                     loadTodayRecords();
                     this.reset();
+                    updateSubStatusSelectOptions('');
                     alert('添加成功！');
                     const now = new Date();
                     now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
@@ -610,16 +1199,40 @@
 
         function registerServiceWorker() {
             if ('serviceWorker' in navigator) {
-                navigator.serviceWorker.register('sw.js').then(r=>console.log('SW OK')).catch(e=>console.error(e));
+                navigator.serviceWorker.register('sw.js').then(registration => {
+                    serviceWorkerRegistration = registration;
+
+                    if (registration.waiting) {
+                        handleServiceWorkerUpdate(registration.waiting);
+                    }
+
+                    registration.addEventListener('updatefound', () => {
+                        const newWorker = registration.installing;
+                        if (!newWorker) return;
+                        newWorker.addEventListener('statechange', () => {
+                            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                                handleServiceWorkerUpdate(newWorker);
+                            }
+                        });
+                    });
+
+                    navigator.serviceWorker.addEventListener('controllerchange', () => {
+                        window.location.reload();
+                    });
+
+                    console.log('SW OK');
+                }).catch(e=>console.error(e));
             }
         }
 
-        window.addEventListener('beforeunload', () => {
-            if(startTime && currentStatus) {
-                localStorage.setItem(BACKGROUND_START_KEY, startTime.toISOString());
-                localStorage.setItem(BACKGROUND_STATUS_KEY, currentStatus);
-                localStorage.setItem(BACKGROUND_DATE_KEY, sessionDateStr);
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'hidden') {
+                syncRunningState();
             }
+        });
+
+        window.addEventListener('beforeunload', () => {
+            syncRunningState();
         });
     </script>
 </body>
