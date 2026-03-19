@@ -412,6 +412,7 @@
         let updateReadyWorker = null;
         let currentRange = 'day';
         let currentChartType = 'bar';
+        let expandedSummaryGroups = new Set();
         
         const DEFAULT_TAG_GROUPS = [
             { name: '工作', subTags: ['深度工作', '会议', '沟通', '杂务'] },
@@ -420,7 +421,7 @@
             { name: '社交', subTags: ['家人', '朋友', '线上交流'] },
             { name: '学习', subTags: ['阅读', '课程', '练习'] }
         ];
-        const APP_VERSION = '2026.03.27';
+        const APP_VERSION = '2026.03.28';
         const VERSION_FILE_URL = new URL('version.json', window.location.href).toString();
         const UPDATE_CHECK_INTERVAL = 5 * 60 * 1000;
         const UPDATE_DISMISS_KEY = 'timeTrackerDismissedVersion';
@@ -557,11 +558,15 @@
             setCheckUpdateButtonState('检查中...', true);
             try {
                 if (serviceWorkerRegistration && typeof serviceWorkerRegistration.update === 'function') {
-                    await serviceWorkerRegistration.update();
-                    if (serviceWorkerRegistration.waiting) {
-                        handleServiceWorkerUpdate(serviceWorkerRegistration.waiting);
-                        setCheckUpdateButtonState('发现更新', false);
-                        return;
+                    try {
+                        await serviceWorkerRegistration.update();
+                        if (serviceWorkerRegistration.waiting) {
+                            handleServiceWorkerUpdate(serviceWorkerRegistration.waiting);
+                            setCheckUpdateButtonState('发现更新', false);
+                            return;
+                        }
+                    } catch (swError) {
+                        console.error('Service worker update check failed:', swError);
                     }
                 }
 
@@ -574,7 +579,7 @@
                 alert(`当前已是最新版本 ${APP_VERSION}`);
             } catch (error) {
                 console.error('Manual update check failed:', error);
-                alert('检查更新失败，请确认 version.json 已部署后再试。');
+                alert('检查更新失败，请稍后重试。');
             } finally {
                 setCheckUpdateButtonState('检查更新', false);
             }
@@ -1261,9 +1266,16 @@
                 return;
             }
 
-            groups.forEach((group, index) => {
+            if (expandedSummaryGroups.size === 0 && currentStatus) {
+                const activeGroup = groups.find(group => group.primary === currentStatus && group.children.length > 0);
+                if (activeGroup) {
+                    expandedSummaryGroups.add(activeGroup.primary);
+                }
+            }
+
+            groups.forEach(group => {
                 const wrapper = document.createElement('div');
-                const shouldExpand = !!currentStatus && group.primary === currentStatus && group.children.length > 0;
+                const shouldExpand = expandedSummaryGroups.has(group.primary) && group.children.length > 0;
                 wrapper.className = `summary-group${shouldExpand ? ' expanded' : ''}`;
                 const childrenHtml = group.children.length > 0
                     ? group.children.map(child => `
@@ -1275,6 +1287,7 @@
                     `).join('')
                     : '<div class="empty-state" style="padding:16px 0 4px;">这个一级标签下还没有二级拆分记录</div>';
 
+                wrapper.dataset.group = group.primary;
                 wrapper.innerHTML = `
                     <button type="button" class="summary-group-header" onclick="toggleSummaryGroup(this.parentElement)">
                         <div class="summary-group-name">${group.primary}</div>
@@ -1586,6 +1599,14 @@
             if (!element) return;
             if (!element.querySelector('.summary-group-body')) return;
             element.classList.toggle('expanded');
+            const groupName = element.dataset.group;
+            if (groupName) {
+                if (element.classList.contains('expanded')) {
+                    expandedSummaryGroups.add(groupName);
+                } else {
+                    expandedSummaryGroups.delete(groupName);
+                }
+            }
             const toggleLabel = element.querySelector('.summary-group-toggle');
             const hasChildren = element.querySelector('.summary-subitem');
             if (toggleLabel && hasChildren) {
