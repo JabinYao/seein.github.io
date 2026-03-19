@@ -1,67 +1,86 @@
-const CACHE_NAME = 'time-tracker-v1';
-const urlsToCache = [
+const CACHE_VERSION = 'v2';
+const STATIC_CACHE = `time-tracker-static-${CACHE_VERSION}`;
+const APP_SHELL = [
   '/',
   '/index.html',
-  '/manifest.json'
+  '/manifest.json',
+  '/version.json',
+  '/icon-72.png',
+  '/icon-96.png',
+  '/icon-128.png',
+  '/icon-144.png',
+  '/icon-152.png',
+  '/icon-192.png',
+  '/icon-384.png',
+  '/icon-512.png'
 ];
 
-// 安装Service Worker
 self.addEventListener('install', event => {
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache => {
-        console.log('Opened cache');
-        return cache.addAll(urlsToCache);
-      })
+    caches.open(STATIC_CACHE)
+      .then(cache => cache.addAll(APP_SHELL))
+      .then(() => self.skipWaiting())
   );
 });
 
-// 拦截网络请求
-self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        // 如果缓存中有请求的资源，则返回缓存版本
-        if (response) {
-          return response;
-        }
-        
-        // 否则发起网络请求
-        return fetch(event.request).then(
-          response => {
-            // 检查是否成功获取资源
-            if(!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
-
-            // 克隆响应，因为响应流只能读取一次
-            var responseToCache = response.clone();
-
-            caches.open(CACHE_NAME)
-              .then(cache => {
-                cache.put(event.request, responseToCache);
-              });
-
-            return response;
-          }
-        );
-      })
-  );
-});
-
-// 激活Service Worker
 self.addEventListener('activate', event => {
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
+    caches.keys().then(cacheNames => Promise.all(
+      cacheNames
+        .filter(cacheName => cacheName !== STATIC_CACHE)
+        .map(cacheName => caches.delete(cacheName))
+    )).then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
+self.addEventListener('fetch', event => {
+  const { request } = event;
+
+  if (request.method !== 'GET') {
+    return;
+  }
+
+  const url = new URL(request.url);
+  const isSameOrigin = url.origin === self.location.origin;
+
+  if (!isSameOrigin) {
+    return;
+  }
+
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      fetch(request)
+        .then(response => {
+          const responseClone = response.clone();
+          caches.open(STATIC_CACHE).then(cache => cache.put('/index.html', responseClone));
+          return response;
         })
-      );
+        .catch(() => caches.match('/index.html'))
+    );
+    return;
+  }
+
+  event.respondWith(
+    caches.match(request).then(cachedResponse => {
+      if (cachedResponse) {
+        return cachedResponse;
+      }
+
+      return fetch(request).then(response => {
+        if (!response || response.status !== 200) {
+          return response;
+        }
+
+        const responseClone = response.clone();
+        caches.open(STATIC_CACHE).then(cache => cache.put(request, responseClone));
+        return response;
+      });
     })
   );
-  return self.clients.claim();
 });
