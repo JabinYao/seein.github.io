@@ -9,7 +9,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
         body {
             background-color: #f5f5f5;
@@ -31,21 +31,13 @@
             cursor: pointer;
             font-size: 14px;
         }
-        .backup-btn.export {
-            background-color: #4285f4;
-        }
-        .backup-btn.import {
-            background-color: #34a853;
-        }
-        .backup-btn.sync {
-            background-color: #fbbc05;
-        }
-        .backup-btn:hover {
-            opacity: 0.9;
-        }
+        .backup-btn.export { background-color: #4285f4; }
+        .backup-btn.import { background-color: #34a853; }
+        .backup-btn.sync { background-color: #fbbc05; }
+        .backup-btn:hover { opacity: 0.9; }
         /* 原有样式 */
         .header {
-            background-color: #4285f4;
+            background-color: #4169E1;
             color: white;
             padding: 20px;
             text-align: center;
@@ -77,12 +69,10 @@
             transition: all 0.3s;
         }
         .tag-item.active {
-            background-color: #4285f4;
+            background-color: #4169E1;
             color: white;
         }
-        .tag-item:hover {
-            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-        }
+        .tag-item:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.15); }
         .timer {
             text-align: center;
             padding: 30px;
@@ -90,9 +80,58 @@
             font-weight: bold;
             color: #333;
         }
-        .stats-container {
-            padding: 20px;
+        /* 二级标签样式 */
+        .subtag-container {
+            display: none;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px dashed #e0e0e0;
         }
+        .current-subtag-label {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 10px;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .subtag-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .subtag-btn {
+            background: white;
+            border: 2px solid #e0e0e0;
+            color: #333;
+            padding: 12px 5px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .subtag-btn.active {
+            background: #4169E1;
+            color: white;
+            border-color: #4169E1;
+            box-shadow: 0 4px 12px rgba(65, 105, 225, 0.3);
+        }
+        .btn-manage-subtag {
+            background: #F9FAFB;
+            border: 1px dashed #e0e0e0;
+            color: #666;
+            font-size: 0.85rem;
+            padding: 10px;
+            grid-column: span 3;
+            margin-top: 5px;
+        }
+        .stats-container { padding: 20px; }
         .stats-card {
             background-color: white;
             border-radius: 8px;
@@ -102,7 +141,7 @@
         }
         .stats-card h3 {
             margin-bottom: 15px;
-            color: #4285f4;
+            color: #4169E1;
             font-size: 18px;
         }
         .stats-item {
@@ -128,15 +167,11 @@
             font-size: 16px;
         }
         .tab-item.active {
-            color: #4285f4;
-            border-bottom: 3px solid #4285f4;
+            color: #4169E1;
+            border-bottom: 3px solid #4169E1;
         }
-        .page {
-            display: none;
-        }
-        .page.active {
-            display: block;
-        }
+        .page { display: none; }
+        .page.active { display: block; }
         .settings-modal {
             position: fixed;
             top: 0;
@@ -158,14 +193,12 @@
         }
         .settings-content h3 {
             margin-bottom: 20px;
-            color: #4285f4;
+            color: #4169E1;
         }
-        .settings-item {
-            margin-bottom: 15px;
-        }
+        .settings-item { margin-bottom: 15px; }
         .settings-item button {
             padding: 8px 16px;
-            background-color: #4285f4;
+            background-color: #4169E1;
             color: white;
             border: none;
             border-radius: 4px;
@@ -183,7 +216,7 @@
     </style>
 </head>
 <body>
-    <!-- 新增：备份/恢复/自动同步数据按钮栏 -->
+    <!-- 备份/恢复/自动同步数据按钮栏 -->
     <div class="backup-bar">
         <button class="backup-btn export" onclick="backupData()">📤 备份数据</button>
         <input type="file" accept=".json" onchange="restoreData(this)" style="display: none;" id="restoreFileInput">
@@ -198,14 +231,20 @@
 
     <div class="page active" id="timer-page">
         <div class="tag-container">
-            <div class="tag-item" data-tag="处理工作">处理工作</div>
-            <div class="tag-item" data-tag="学习研究">学习研究</div>
-            <div class="tag-item" data-tag="运动健身">运动健身</div>
-            <div class="tag-item" data-tag="休息睡觉">休息睡觉</div>
-            <div class="tag-item" data-tag="娱乐休闲">娱乐休闲</div>
-            <div class="tag-item" data-tag="社交沟通">社交沟通</div>
+            <div class="tag-item" data-tag-id="tag_1" data-tag-name="处理工作">处理工作</div>
+            <div class="tag-item" data-tag-id="tag_2" data-tag-name="学习研究">学习研究</div>
+            <div class="tag-item" data-tag-id="tag_3" data-tag-name="运动健身">运动健身</div>
+            <div class="tag-item" data-tag-id="tag_4" data-tag-name="休息睡觉">休息睡觉</div>
+            <div class="tag-item" data-tag-id="tag_5" data-tag-name="主动娱乐">主动娱乐</div>
+            <div class="tag-item" data-tag-id="tag_6" data-tag-name="碎片泄露">碎片泄露</div>
         </div>
         <div class="timer" id="timer">00:00:00</div>
+        <!-- 二级标签容器 -->
+        <div class="subtag-container" id="subtagContainer">
+            <div class="current-subtag-label">二级明细</div>
+            <div class="subtag-buttons" id="subtagButtons"></div>
+            <button class="subtag-btn btn-manage-subtag" onclick="openSubtagManager()">✏️ 管理二级标签</button>
+        </div>
     </div>
 
     <div class="page" id="stats-page">
@@ -240,197 +279,186 @@
     </div>
 
     <script>
+        // 默认一级标签
+        const DEFAULT_TAGS = [
+            { id: 'tag_1', name: '处理工作', aliases: [] },
+            { id: 'tag_2', name: '学习研究', aliases: [] },
+            { id: 'tag_3', name: '运动健身', aliases: [] },
+            { id: 'tag_4', name: '休息睡觉', aliases: [] },
+            { id: 'tag_5', name: '主动娱乐', aliases: [] },
+            { id: 'tag_6', name: '碎片泄露', aliases: [] }
+        ];
+        // 默认二级标签
+        const DEFAULT_SUBTAGS = {
+            '处理工作': ['开会', '写文档', '对接需求', '处理邮件', '编程开发'],
+            '学习研究': ['学英语', '看书', '写代码', '查资料', '网课学习'],
+            '运动健身': ['跑步', '健身', '瑜伽', '打球', '游泳'],
+            '休息睡觉': ['午睡', '夜间睡眠', '发呆', '散步', '冥想'],
+            '主动娱乐': ['看电影', '玩游戏', '听音乐', '追剧', '手工'],
+            '碎片泄露': ['刷短视频', '无目的浏览', '闲聊', '等待', '其他']
+        };
+
         // 全局变量
-        let currentTag = '';
+        let statusTags = JSON.parse(localStorage.getItem('statusTagsV2') || JSON.stringify(DEFAULT_TAGS));
+        let subTags = JSON.parse(localStorage.getItem('subTags') || JSON.stringify(DEFAULT_SUBTAGS));
+        let records = JSON.parse(localStorage.getItem('timeRecordsV2') || '[]');
+        let currentTagId = '';
+        let currentSubtag = '';
         let startTime = 0;
         let timerInterval = null;
-        let records = JSON.parse(localStorage.getItem('timeRecordsV2') || '[]');
 
         // 初始化
         init();
-
         function init() {
-            // 绑定标签点击事件
+            // 绑定一级标签点击
             document.querySelectorAll('.tag-item').forEach(item => {
                 item.addEventListener('click', function() {
-                    // 停止之前的计时
                     stopTimer();
-                    
-                    // 重置标签样式
                     document.querySelectorAll('.tag-item').forEach(i => i.classList.remove('active'));
                     this.classList.add('active');
-                    
-                    // 开始新计时
-                    currentTag = this.dataset.tag;
+                    currentTagId = this.dataset.tagId;
+                    currentSubtag = '';
                     startTime = Date.now();
+                    showSubtagContainer(this.dataset.tagName);
                     startTimer();
                 });
             });
-
-            // 更新今日统计和历史记录
             updateTodayStats();
             updateHistoryStats();
         }
 
-        // 开始计时
-        function startTimer() {
-            timerInterval = setInterval(() => {
-                const elapsed = Math.floor((Date.now() - startTime) / 1000);
-                const hours = Math.floor(elapsed / 3600).toString().padStart(2, '0');
-                const minutes = Math.floor((elapsed % 3600) / 60).toString().padStart(2, '0');
-                const seconds = (elapsed % 60).toString().padStart(2, '0');
-                document.getElementById('timer').textContent = `${hours}:${minutes}:${seconds}`;
-            }, 1000);
+        // 显示二级标签
+        function showSubtagContainer(mainTagName) {
+            const container = document.getElementById('subtagContainer');
+            const subtagButtons = document.getElementById('subtagButtons');
+            subtagButtons.innerHTML = '';
+            const subtags = subTags[mainTagName] || [];
+            if (subtags.length > 0) {
+                container.style.display = 'block';
+                subtags.forEach(subtag => {
+                    const btn = document.createElement('button');
+                    btn.className = `subtag-btn ${currentSubtag === subtag ? 'active' : ''}`;
+                    btn.dataset.subtag = subtag;
+                    btn.textContent = subtag;
+                    btn.onclick = () => {
+                        currentSubtag = subtag;
+                        document.querySelectorAll('.subtag-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                    };
+                    subtagButtons.appendChild(btn);
+                });
+            } else {
+                container.style.display = 'none';
+            }
         }
 
-        // 停止计时并保存记录
+        // 计时相关
+        function startTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const h = Math.floor(elapsed / 3600).toString().padStart(2, '0');
+                const m = Math.floor((elapsed % 3600) / 60).toString().padStart(2, '0');
+                const s = (elapsed % 60).toString().padStart(2, '0');
+                document.getElementById('timer').textContent = `${h}:${m}:${s}`;
+            }, 1000);
+        }
         function stopTimer() {
             if (timerInterval) {
                 clearInterval(timerInterval);
                 timerInterval = null;
-                
-                if (currentTag) {
+                if (currentTagId) {
                     const endTime = Date.now();
                     const duration = Math.floor((endTime - startTime) / 1000);
                     const today = new Date().toISOString().split('T')[0];
-                    
-                    // 保存记录
                     records.push({
                         id: 'rec_' + Date.now(),
-                        tag: currentTag,
+                        tagId: currentTagId,
+                        subtag: currentSubtag,
                         start: new Date(startTime).toISOString(),
                         end: new Date(endTime).toISOString(),
                         duration: duration,
-                        date: today
+                        date: today,
+                        originalName: getTagNameById(currentTagId)
                     });
-                    
                     localStorage.setItem('timeRecordsV2', JSON.stringify(records));
-                    
-                    // 更新统计
                     updateTodayStats();
                     updateHistoryStats();
-                    
-                    // 重置状态
-                    currentTag = '';
+                    currentTagId = '';
+                    currentSubtag = '';
                     document.getElementById('timer').textContent = '00:00:00';
                 }
             }
         }
 
-        // 更新今日统计
+        // 统计相关（兼容旧数据：tagId → tagName）
+        function getTagNameById(tagId) {
+            const tag = statusTags.find(t => t.id === tagId);
+            return tag ? tag.name : '未知';
+        }
+        function formatDuration(seconds) {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            return `${h}小时${m}分钟`;
+        }
         function updateTodayStats() {
             const today = new Date().toISOString().split('T')[0];
             const todayRecords = records.filter(r => r.date === today);
-            
-            // 按标签汇总时长
             const tagSummary = {};
             todayRecords.forEach(r => {
-                if (!tagSummary[r.tag]) {
-                    tagSummary[r.tag] = 0;
-                }
-                tagSummary[r.tag] += r.duration;
+                const tagName = getTagNameById(r.tagId);
+                if (!tagSummary[tagName]) tagSummary[tagName] = 0;
+                tagSummary[tagName] += r.duration;
             });
-            
-            // 生成统计HTML
             let html = '';
             Object.keys(tagSummary).forEach(tag => {
-                const hours = Math.floor(tagSummary[tag] / 3600);
-                const minutes = Math.floor((tagSummary[tag] % 3600) / 60);
-                html += `<div class="stats-item">
-                    <span>${tag}</span>
-                    <span>${hours}小时${minutes}分钟</span>
-                </div>`;
+                html += `<div class="stats-item"><span>${tag}</span><span>${formatDuration(tagSummary[tag])}</span></div>`;
             });
-            
-            if (html === '') {
-                html = '<div class="stats-item"><span>暂无今日记录</span></div>';
-            }
-            
+            if (html === '') html = '<div class="stats-item"><span>暂无今日记录</span></div>';
             document.getElementById('today-stats').innerHTML = html;
         }
-
-        // 更新历史记录
         function updateHistoryStats() {
-            // 按日期分组
             const dateGroups = {};
             records.forEach(r => {
-                if (!dateGroups[r.date]) {
-                    dateGroups[r.date] = [];
-                }
+                if (!dateGroups[r.date]) dateGroups[r.date] = [];
                 dateGroups[r.date].push(r);
             });
-            
-            // 生成历史记录HTML
             let html = '';
             Object.keys(dateGroups).reverse().forEach(date => {
                 html += `<div class="stats-item"><strong>${date}</strong></div>`;
-                
-                // 按标签汇总当日记录
                 const tagSummary = {};
                 dateGroups[date].forEach(r => {
-                    if (!tagSummary[r.tag]) {
-                        tagSummary[r.tag] = 0;
-                    }
-                    tagSummary[r.tag] += r.duration;
+                    const tagName = getTagNameById(r.tagId);
+                    if (!tagSummary[tagName]) tagSummary[tagName] = 0;
+                    tagSummary[tagName] += r.duration;
                 });
-                
                 Object.keys(tagSummary).forEach(tag => {
-                    const hours = Math.floor(tagSummary[tag] / 3600);
-                    const minutes = Math.floor((tagSummary[tag] % 3600) / 60);
-                    html += `<div class="stats-item" style="padding-left: 15px;">
-                        <span>${tag}</span>
-                        <span>${hours}小时${minutes}分钟</span>
-                    </div>`;
+                    html += `<div class="stats-item" style="padding-left: 15px;"><span>${tag}</span><span>${formatDuration(tagSummary[tag])}</span></div>`;
                 });
             });
-            
-            if (html === '') {
-                html = '<div class="stats-item"><span>暂无历史记录</span></div>';
-            }
-            
+            if (html === '') html = '<div class="stats-item"><span>暂无历史记录</span></div>';
             document.getElementById('history-stats').innerHTML = html;
         }
 
-        // 切换标签页
+        // 页面切换
         function switchTab(pageId) {
-            // 停止计时（切换到统计页时）
-            if (pageId === 'stats-page') {
-                stopTimer();
-            }
-            
-            // 切换页面显示
-            document.querySelectorAll('.page').forEach(page => {
-                page.classList.remove('active');
-            });
+            if (pageId === 'stats-page') stopTimer();
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
-            
-            // 切换标签样式
-            document.querySelectorAll('.tab-item').forEach(tab => {
-                tab.classList.remove('active');
-            });
+            document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
             event.target.classList.add('active');
         }
 
-        // 打开设置弹窗
-        function openSettings() {
-            document.getElementById('settings-modal').style.display = 'flex';
-        }
-
-        // 关闭设置弹窗
-        function closeSettings() {
-            document.getElementById('settings-modal').style.display = 'none';
-        }
-
-        // 导出全部记录
+        // 设置菜单
+        function openSettings() { document.getElementById('settings-modal').style.display = 'flex'; }
+        function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; }
         function exportAllRecords() {
-            const csvHeader = 'ID,标签,开始时间,结束时间,时长(秒),日期\n';
+            const csvHeader = 'ID,标签,二级标签,开始时间,结束时间,时长(秒),日期\n';
             let csvContent = csvHeader;
-            
             records.forEach(r => {
-                csvContent += `${r.id},${r.tag},${r.start},${r.end},${r.duration},${r.date}\n`;
+                const tagName = getTagNameById(r.tagId);
+                csvContent += `${r.id},${tagName},${r.subtag},${r.start},${r.end},${r.duration},${r.date}\n`;
             });
-            
-            // 下载CSV文件
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -439,98 +467,74 @@
             a.click();
             URL.revokeObjectURL(url);
         }
-
-        // 清空今日记录
         function clearTodayRecords() {
-            if (confirm('确定要清空今日记录吗？')) {
+            if (confirm('确定清空今日记录？')) {
                 const today = new Date().toISOString().split('T')[0];
                 records = records.filter(r => r.date !== today);
                 localStorage.setItem('timeRecordsV2', JSON.stringify(records));
                 updateTodayStats();
                 updateHistoryStats();
-                alert('今日记录已清空');
             }
         }
 
-        // 备份数据到JSON文件
+        // 数据备份/恢复/同步
         function backupData() {
-            const backupData = {
-                records: JSON.parse(localStorage.getItem('timeRecordsV2') || '[]'),
-                backupTime: new Date().toLocaleString()
-            };
-            const backupStr = JSON.stringify(backupData, null, 2);
-            const blob = new Blob([backupStr], { type: 'application/json' });
+            const backupData = { records, tags: statusTags, subtags: subTags, backupTime: new Date().toLocaleString() };
+            const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
             a.download = `时间记录备份_${new Date().getTime()}.json`;
             a.click();
-            alert('✅ 数据已备份到手机下载文件夹！');
+            alert('✅ 备份完成！');
         }
-
-        // 从JSON文件恢复数据
         function restoreData(input) {
             const file = input.files[0];
             if (!file) return;
-            
             const reader = new FileReader();
-            reader.onload = function(e) {
+            reader.onload = e => {
                 try {
-                    const backupData = JSON.parse(e.target.result);
-                    if (backupData.records && Array.isArray(backupData.records)) {
-                        localStorage.setItem('timeRecordsV2', JSON.stringify(backupData.records));
-                        // 刷新记录数据并更新页面
-                        records = backupData.records;
-                        updateTodayStats();
-                        updateHistoryStats();
-                        alert('✅ 数据恢复成功！');
-                    } else {
-                        alert('❌ 恢复失败：备份文件格式错误');
+                    const data = JSON.parse(e.target.result);
+                    if (data.records) {
+                        records = data.records;
+                        localStorage.setItem('timeRecordsV2', JSON.stringify(records));
                     }
-                } catch (err) {
-                    alert('❌ 恢复失败：文件损坏或格式错误');
-                }
+                    if (data.tags) {
+                        statusTags = data.tags;
+                        localStorage.setItem('statusTagsV2', JSON.stringify(statusTags));
+                    }
+                    if (data.subtags) {
+                        subTags = data.subtags;
+                        localStorage.setItem('subTags', JSON.stringify(subTags));
+                    }
+                    updateTodayStats();
+                    updateHistoryStats();
+                    alert('✅ 恢复成功！');
+                } catch (err) { alert('❌ 恢复失败：文件格式错误'); }
             };
             reader.readAsText(file);
         }
-
-        // 新增：自动同步数据（更新代码后一键恢复所有旧数据）
         function autoSyncData() {
-            // 1. 检测所有可能的旧数据键（兼容旧版/新版）
-            const oldDataKeys = ['timeRecords', 'timeRecordsV2', 'backupRecords'];
-            let allOldRecords = [];
-            
-            // 2. 读取所有旧数据并去重
-            oldDataKeys.forEach(key => {
+            const oldKeys = ['timeRecords', 'timeRecordsV2', 'statusTags', 'statusTagsV2', 'subTags'];
+            let allRecords = [];
+            oldKeys.forEach(key => {
                 const data = localStorage.getItem(key);
                 if (data) {
                     try {
                         const parsed = JSON.parse(data);
-                        if (Array.isArray(parsed)) {
-                            allOldRecords = [...allOldRecords, ...parsed];
-                        }
-                    } catch (e) {
-                        console.log('读取旧数据失败:', key, e);
-                    }
+                        if (Array.isArray(parsed)) allRecords = [...allRecords, ...parsed];
+                    } catch(e) {}
                 }
             });
-            
-            // 3. 去重（按ID唯一）
-            const uniqueRecords = Array.from(new Map(allOldRecords.map(item => [item.id, item])).values());
-            
-            // 4. 保存同步后的数据
-            localStorage.setItem('timeRecordsV2', JSON.stringify(uniqueRecords));
+            const uniqueRecords = Array.from(new Map(allRecords.map(r => [r.id, r])).values());
             records = uniqueRecords;
-            
-            // 5. 更新页面并提示
+            localStorage.setItem('timeRecordsV2', JSON.stringify(records));
             updateTodayStats();
             updateHistoryStats();
-            
-            if (uniqueRecords.length > 0) {
-                alert(`✅ 自动同步成功！共恢复 ${uniqueRecords.length} 条记录`);
-            } else {
-                alert(`ℹ️ 未检测到旧数据，当前记录数：0`);
-            }
+            alert(`✅ 同步完成！共恢复 ${uniqueRecords.length} 条记录`);
         }
+
+        // 二级标签管理（占位，可后续扩展）
+        function openSubtagManager() { alert('二级标签管理功能可后续扩展'); }
     </script>
 </body>
 </html>
