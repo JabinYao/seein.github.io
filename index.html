@@ -2,625 +2,728 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>专注时间记录</title>
-    <meta name="theme-color" content="#4f46e5">
-    <meta name="description" content="卡片式极简时间追踪工具">
-    
-    <!-- PWA 配置 -->
-    <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="https://cdn-icons-png.flaticon.com/512/3209/3209968.png">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>时间统计工具</title>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#2196F3">
     <style>
-        :root {
-            --primary: #4f46e5;
-            --bg: #f3f4f6;
-            --card-bg: #ffffff;
-            --text: #1f2937;
-            --text-light: #6b7280;
-            --danger: #ef4444;
-            --success: #10b981;
-            
-            /* 分类卡片颜色 */
-            --cat-study: #e0e7ff; --cat-study-text: #4338ca; --cat-study-icon: #3730a3;
-            --cat-work: #dcfce7;  --cat-work-text: #166534;  --cat-work-icon: #14532d;
-            --cat-life: #ffedd5;  --cat-life-text: #9a3412;  --cat-life-icon: #7c2d12;
-            --cat-sport: #fee2e2; --cat-sport-text: #991b1b; --cat-sport-icon: #7f1d1d;
-            --cat-fun: #f3e8ff;   --cat-fun-text: #6b21a8;   --cat-fun-icon: #581c87;
-            --cat-other: #f1f5f9; --cat-other-text: #475569; --cat-other-icon: #334155;
-        }
-
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body {
-            margin: 0; padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            padding-bottom: 100px;
-        }
-
-        /* 顶部 */
-        header {
-            background: var(--primary);
-            color: white;
-            padding: 20px 15px 30px; /* 底部留白给卡片悬浮感 */
-            text-align: center;
-            border-radius: 0 0 20px 20px;
-            box-shadow: 0 4px 10px rgba(79, 70, 229, 0.2);
-        }
-        header h1 { margin: 0; font-size: 1.3rem; font-weight: 700; }
-        header p { margin: 5px 0 0; opacity: 0.9; font-size: 0.85rem; }
-
-        /* 计时器 */
-        .timer-display {
-            background: var(--card-bg);
-            margin: -20px 15px 15px; /* 向上重叠 Header */
-            padding: 25px 20px;
-            border-radius: 16px;
-            text-align: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-            position: relative;
-            z-index: 10;
-        }
-        .time-big {
-            font-size: 3.2rem;
-            font-weight: 800;
-            font-variant-numeric: tabular-nums;
-            color: var(--text);
-            line-height: 1.1;
-            letter-spacing: -1px;
-        }
-        .current-task {
-            margin-top: 8px;
-            font-size: 0.95rem;
-            color: var(--text-light);
-            min-height: 1.4em;
-            font-weight: 500;
-        }
-
-        /* === 卡片选择区 (核心修改) === */
-        .category-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr); /* 3列布局 */
-            gap: 10px;
-            padding: 0 15px;
-            margin-bottom: 20px;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
         
-        .cat-card {
-            background: var(--card-bg);
-            border: 2px solid transparent;
-            border-radius: 12px;
-            padding: 12px 5px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            padding: 10px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .container {
             display: flex;
             flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 80px;
+            gap: 15px;
         }
-
-        .cat-card:active { transform: scale(0.95); }
-
-        /* 选中状态 */
-        .cat-card.selected {
-            border-color: var(--primary);
-            background-color: #eef2ff;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
-        }
-
-        .cat-icon { font-size: 1.8rem; margin-bottom: 6px; display: block; }
-        .cat-name { font-size: 0.85rem; font-weight: 600; line-height: 1.2; }
-
-        /* 不同分类的配色 */
-        .cat-card[data-val="📚 学习研究"] { background-color: var(--cat-study); color: var(--cat-study-text); }
-        .cat-card[data-val="📚 学习研究"] .cat-icon { color: var(--cat-study-icon); }
-        .cat-card.selected[data-val="📚 学习研究"] { background-color: #c7d2fe; }
-
-        .cat-card[data-val="💻 工作开发"] { background-color: var(--cat-work); color: var(--cat-work-text); }
-        .cat-card[data-val="💻 工作开发"] .cat-icon { color: var(--cat-work-icon); }
-        .cat-card.selected[data-val="💻 工作开发"] { background-color: #bbf7d0; }
-
-        .cat-card[data-val="🏠 生活家务"] { background-color: var(--cat-life); color: var(--cat-life-text); }
-        .cat-card[data-val="🏠 生活家务"] .cat-icon { color: var(--cat-life-icon); }
-        .cat-card.selected[data-val="🏠 生活家务"] { background-color: #fed7aa; }
-
-        .cat-card[data-val="🏃 运动健康"] { background-color: var(--cat-sport); color: var(--cat-sport-text); }
-        .cat-card[data-val="🏃 运动健康"] .cat-icon { color: var(--cat-sport-icon); }
-        .cat-card.selected[data-val="🏃 运动健康"] { background-color: #fecaca; }
-
-        .cat-card[data-val="🎮 娱乐休闲"] { background-color: var(--cat-fun); color: var(--cat-fun-text); }
-        .cat-card[data-val="🎮 娱乐休闲"] .cat-icon { color: var(--cat-fun-icon); }
-        .cat-card.selected[data-val="🎮 娱乐休闲"] { background-color: #e9d5ff; }
-
-        .cat-card[data-val="other"] { background-color: var(--cat-other); color: var(--cat-other-text); border-style: dashed; }
-        .cat-card[data-val="other"] .cat-icon { color: var(--cat-other-icon); }
-        .cat-card.selected[data-val="other"] { border-color: var(--text-light); background-color: #e2e8f0; }
-
-
-        /* 输入区域 */
-        .input-section {
-            padding: 0 15px;
-            background: var(--card-bg);
-            margin: 0 15px 15px;
-            padding: 20px;
-            border-radius: 16px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-        .input-label { font-size: 0.85rem; color: var(--text-light); margin-bottom: 8px; display: block; font-weight: 600;}
         
-        .sub-input {
-            width: 100%;
-            padding: 14px;
-            border: 1px solid #e5e7eb;
+        .card {
+            background: white;
             border-radius: 10px;
-            font-size: 1rem;
-            background: #f9fafb;
-            outline: none;
-            transition: border 0.2s;
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        .sub-input:focus { border-color: var(--primary); background: #fff; }
-
-        .chips-area {
+        
+        .title {
+            text-align: center;
+            font-size: 1.5em;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .status-display {
+            text-align: center;
+            font-size: 1.2em;
+            margin: 10px 0;
+            padding: 10px;
+            background: #e3f2fd;
+            border-radius: 5px;
+        }
+        
+        .primary-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .tag-btn {
+            flex: 1;
+            min-width: 100px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s;
+        }
+        
+        .tag-btn.active {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .tag-btn.work { background: #E3F2FD; color: #1976D2; }
+        .tag-btn.rest { background: #E8F5E8; color: #388E3C; }
+        .tag-btn.study { background: #FFF3E0; color: #F57C00; }
+        
+        .secondary-tags {
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
-            margin-top: 12px;
-            min-height: 20px;
+            margin-top: 10px;
         }
-        .chip {
-            background: #f3f4f6;
-            color: var(--text-light);
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            cursor: pointer;
-            border: 1px solid #e5e7eb;
-        }
-        .chip:active { background: var(--primary); color: white; border-color: var(--primary); }
-
-        /* 按钮 */
-        .action-btn {
-            width: calc(100% - 30px);
-            margin: 0 15px;
-            padding: 18px;
-            border: none;
-            border-radius: 16px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            transition: transform 0.1s;
-        }
-        .action-btn:active { transform: scale(0.98); }
-        .btn-start { background: var(--primary); color: white; }
-        .btn-stop { background: var(--danger); color: white; display: none; }
-
-        /* 历史记录 */
-        .history-section { padding: 0 15px; }
-        .section-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 10px; padding-top: 10px;
-        }
-        .section-title { font-size: 1rem; font-weight: 700; color: var(--text); }
-        .clear-btn { font-size: 0.8rem; color: var(--text-light); background: none; border: none; }
         
-        .history-list { list-style: none; padding: 0; margin: 0 0 30px 0; }
-        .history-item {
-            background: var(--card-bg);
-            padding: 15px;
-            border-radius: 12px;
+        .sub-tag-btn {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background: white;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+        
+        .sub-tag-btn.active {
+            background: #BBDEFB;
+            border-color: #2196F3;
+        }
+        
+        .stats-card {
+            margin-top: 10px;
+        }
+        
+        .daily-stats {
             margin-bottom: 10px;
-            display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-            border-left: 4px solid transparent;
         }
-        /* 历史记录左侧颜色条 */
-        .history-item[data-cat*="学习"] { border-left-color: var(--cat-study-text); }
-        .history-item[data-cat*="工作"] { border-left-color: var(--cat-work-text); }
-        .history-item[data-cat*="生活"] { border-left-color: var(--cat-life-text); }
-        .history-item[data-cat*="运动"] { border-left-color: var(--cat-sport-text); }
-        .history-item[data-cat*="娱乐"] { border-left-color: var(--cat-fun-text); }
-
-        .item-info { flex: 1; }
-        .item-cat { font-weight: 700; font-size: 0.95rem; }
-        .item-sub { font-size: 0.85rem; color: var(--text-light); margin-top: 2px; }
-        .item-time { font-weight: 800; color: var(--primary); font-variant-numeric: tabular-nums; font-size: 1.1rem; }
-        .item-date { font-size: 0.7rem; color: #9ca3af; margin-top: 4px; }
-
-        /* 更新提示 */
-        #update-toast {
-            display: none; position: fixed; top: 0; left: 0; right: 0;
-            background: #4f46e5; color: white; text-align: center;
-            padding: 12px; font-size: 14px; z-index: 9999;
-            justify-content: center; align-items: center; gap: 10px;
+        
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
         }
-        #update-toast button {
-            background: white; color: #4f46e5; border: none;
-            padding: 6px 16px; border-radius: 6px; font-weight: bold; cursor: pointer;
+        
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .control-btn {
+            flex: 1;
+            min-width: 120px;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        
+        .update-btn { background: #FF9800; color: white; }
+        .export-btn { background: #4CAF50; color: white; }
+        .manage-btn { background: #9E9E9E; color: white; }
+        
+        .editor-panel {
+            display: none;
+            margin-top: 15px;
+        }
+        
+        .editor-panel.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .action-btn {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        
+        .save-btn { background: #2196F3; color: white; }
+        .cancel-btn { background: #9E9E9E; color: white; }
+        .delete-btn { background: #F44336; color: white; }
+        
+        .install-prompt {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: #2196F3;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 1000;
+            display: none;
+        }
+        
+        .install-btn {
+            background: white;
+            color: #2196F3;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            margin-left: 10px;
+            cursor: pointer;
+            font-weight: bold;
         }
     </style>
 </head>
 <body>
-
-    <!-- 更新提示 -->
-    <div id="update-toast">
-        <span>✨ 新版本已就绪</span>
-        <button onclick="window.location.reload()">立即刷新</button>
+    <div class="container">
+        <h1 class="title">时间统计工具</h1>
+        
+        <div class="status-display" id="currentStatus">
+            当前状态：未开始计时
+        </div>
+        
+        <div class="card">
+            <h3>选择主状态</h3>
+            <div class="primary-tags" id="primaryTags">
+                <!-- 主标签将通过JS动态生成 -->
+            </div>
+            
+            <h3 style="margin-top: 15px;">选择子状态</h3>
+            <div class="secondary-tags" id="secondaryTags">
+                <!-- 子标签将通过JS动态生成 -->
+            </div>
+        </div>
+        
+        <div class="card stats-card">
+            <h3>今日统计</h3>
+            <div class="daily-stats" id="dailyStats">
+                <!-- 今日统计数据将通过JS动态生成 -->
+            </div>
+        </div>
+        
+        <div class="card">
+            <h3>控制面板</h3>
+            <div class="controls">
+                <button class="control-btn update-btn" onclick="checkForUpdate()">检查更新</button>
+                <button class="control-btn export-btn" onclick="exportData()">导出数据</button>
+                <button class="control-btn manage-btn" onclick="toggleEditor()">管理标签</button>
+            </div>
+        </div>
+        
+        <div class="card editor-panel" id="editorPanel">
+            <h3>标签管理</h3>
+            <div class="form-group">
+                <label>标签类型：</label>
+                <select id="tagType">
+                    <option value="primary">主标签</option>
+                    <option value="secondary">子标签</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>标签名称：</label>
+                <input type="text" id="tagName" placeholder="输入标签名称">
+            </div>
+            
+            <div class="form-group" id="parentSelectGroup" style="display: none;">
+                <label>所属主标签：</label>
+                <select id="parentTag"></select>
+            </div>
+            
+            <div class="action-buttons">
+                <button class="action-btn save-btn" onclick="saveTag()">保存</button>
+                <button class="action-btn cancel-btn" onclick="closeEditor()">取消</button>
+                <button class="action-btn delete-btn" onclick="deleteTag()">删除</button>
+            </div>
+        </div>
     </div>
-
-    <header>
-        <h1>⏱️ 专注时间</h1>
-        <p>选择分类，开始记录</p>
-    </header>
-
-    <div class="timer-display">
-        <div class="time-big" id="timer">00:00:00</div>
-        <div class="current-task" id="status-text">准备开始...</div>
-    </div>
-
-    <!-- === 卡片选择区 === -->
-    <div class="category-grid" id="category-grid">
-        <!-- 由 JS 生成或静态写死，这里为了清晰直接写死结构，JS 负责绑定事件 -->
-        <div class="cat-card" data-val="📚 学习研究" onclick="selectCategory(this)">
-            <span class="cat-icon">📚</span>
-            <span class="cat-name">学习研究</span>
-        </div>
-        <div class="cat-card" data-val="💻 工作开发" onclick="selectCategory(this)">
-            <span class="cat-icon">💻</span>
-            <span class="cat-name">工作开发</span>
-        </div>
-        <div class="cat-card" data-val="🏠 生活家务" onclick="selectCategory(this)">
-            <span class="cat-icon">🏠</span>
-            <span class="cat-name">生活家务</span>
-        </div>
-        <div class="cat-card" data-val="🏃 运动健康" onclick="selectCategory(this)">
-            <span class="cat-icon">🏃</span>
-            <span class="cat-name">运动健康</span>
-        </div>
-        <div class="cat-card" data-val="🎮 娱乐休闲" onclick="selectCategory(this)">
-            <span class="cat-icon">🎮</span>
-            <span class="cat-name">娱乐休闲</span>
-        </div>
-        <div class="cat-card" data-val="other" onclick="selectCategory(this)">
-            <span class="cat-icon">➕</span>
-            <span class="cat-name">其他自定义</span>
-        </div>
-    </div>
-
-    <!-- 输入区 -->
-    <div class="input-section">
-        <label class="input-label" id="input-label">具体事项</label>
-        <input type="text" id="sub-task-input" class="sub-input" placeholder="先点击上方选择一个分类..." autocomplete="off">
-        <div class="chips-area" id="chips-area"></div>
-    </div>
-
-    <button id="start-btn" class="action-btn btn-start" disabled style="opacity: 0.6; cursor: not-allowed;">开始计时</button>
-    <button id="stop-btn" class="action-btn btn-stop">结束并保存</button>
-
-    <div class="history-section">
-        <div class="section-header">
-            <span class="section-title">📅 今日记录</span>
-            <button class="clear-btn" onclick="clearTodayData()">清空</button>
-        </div>
-        <ul class="history-list" id="history-list">
-            <!-- 动态插入 -->
-        </ul>
+    
+    <div class="install-prompt" id="installPrompt">
+        <span>添加到主屏幕以获得最佳体验</span>
+        <button class="install-btn" onclick="deferredPrompt.prompt(); deferredPrompt.userChoice.then((choiceResult) => { if (choiceResult.outcome === 'accepted') { installPrompt.style.display = 'none'; } deferredPrompt = null; });">添加</button>
     </div>
 
     <script>
-        // === 状态管理 ===
-        let timerInterval;
-        let startTime;
-        let isRunning = false;
-        let currentCategory = ''; // 存储完整名称如 "📚 学习研究"
-        let currentSubTask = '';
+        // 初始化默认数据
+        let timeData = JSON.parse(localStorage.getItem('timeData')) || {};
+        let currentTimer = null;
+        let startTime = null;
+        let currentPrimaryTag = null;
+        let currentSecondaryTag = null;
+        let deferredPrompt = null;
         
-        const DB_KEY = 'time_tracker_data_v2'; // 版本号升级
-        const PRESETS_KEY = 'time_tracker_presets_v2';
-
-        // DOM
-        const timerEl = document.getElementById('timer');
-        const statusEl = document.getElementById('status-text');
-        const subInput = document.getElementById('sub-task-input');
-        const chipsArea = document.getElementById('chips-area');
-        const inputLabel = document.getElementById('input-label');
-        const startBtn = document.getElementById('start-btn');
-        const stopBtn = document.getElementById('stop-btn');
-        const historyList = document.getElementById('history-list');
-
-        function init() {
-            loadHistory();
-            restoreState();
-            
-            subInput.addEventListener('input', handleInput);
-            startBtn.addEventListener('click', startTimer);
-            stopBtn.addEventListener('click', stopTimer);
-        }
-
-        // === 核心交互：选择分类 ===
-        window.selectCategory = function(cardElement) {
-            if (isRunning) return; // 计时中不可切换
-
-            // 移除其他选中状态
-            document.querySelectorAll('.cat-card').forEach(c => c.classList.remove('selected'));
-            // 添加当前选中
-            cardElement.classList.add('selected');
-
-            const val = cardElement.getAttribute('data-val');
-            currentCategory = val;
-
-            // 处理 "其他" 逻辑
-            if (val === 'other') {
-                inputLabel.textContent = "自定义分类名称";
-                subInput.placeholder = "例如：阅读、冥想...";
-                subInput.value = '';
-                subInput.focus();
-                chipsArea.innerHTML = ''; // 其他分类不显示预设芯片（或者可以做一个全局预设，这里简化为空）
-                checkStartReady();
-                return;
+        // 默认标签配置
+        const defaultConfig = {
+            primaryTags: [
+                { id: 'work', name: '工作', color: '#2196F3' },
+                { id: 'rest', name: '休息', color: '#4CAF50' },
+                { id: 'study', name: '学习', color: '#FF9800' }
+            ],
+            secondaryTags: {
+                work: [
+                    { id: 'meeting', name: '会议' },
+                    { id: 'coding', name: '写代码' },
+                    { id: 'finance', name: '财务' }
+                ],
+                rest: [
+                    { id: 'break', name: '休息' },
+                    { id: 'exercise', name: '运动' }
+                ],
+                study: [
+                    { id: 'reading', name: '阅读' },
+                    { id: 'course', name: '课程' }
+                ]
             }
-
-            // 正常分类逻辑
-            inputLabel.textContent = "具体事项";
-            subInput.placeholder = "例如：背单词、写报告...";
-            subInput.value = '';
-            subInput.focus();
-            
-            renderChips(val);
-            checkStartReady();
         };
-
-        function renderChips(category) {
-            chipsArea.innerHTML = '';
-            const presets = JSON.parse(localStorage.getItem(PRESETS_KEY) || '{}');
-            const items = presets[category] || [];
-            
-            if (items.length === 0) {
-                chipsArea.style.display = 'none';
-                return;
-            }
-            chipsArea.style.display = 'flex';
-
-            items.forEach(item => {
-                const chip = document.createElement('div');
-                chip.className = 'chip';
-                chip.textContent = item;
-                chip.onclick = () => {
-                    subInput.value = item;
-                    checkStartReady();
-                    // 可选：点击后自动开始？暂时不，让用户确认
-                };
-                chipsArea.appendChild(chip);
-            });
+        
+        let config = JSON.parse(localStorage.getItem('config')) || defaultConfig;
+        
+        // 保存配置到本地存储
+        function saveConfig() {
+            localStorage.setItem('config', JSON.stringify(config));
         }
-
-        // 输入处理 & 自动保存预设
-        let saveTimeout;
-        function handleInput() {
-            checkStartReady();
-            
-            if (!currentCategory || currentCategory === 'other') return;
-
-            clearTimeout(saveTimeout);
-            saveTimeout = setTimeout(() => {
-                const val = subInput.value.trim();
-                if (val) {
-                    const presets = JSON.parse(localStorage.getItem(PRESETS_KEY) || '{}');
-                    if (!presets[currentCategory]) presets[currentCategory] = [];
-                    
-                    if (!presets[currentCategory].includes(val)) {
-                        presets[currentCategory].push(val);
-                        localStorage.setItem(PRESETS_KEY, JSON.stringify(presets));
-                        renderChips(currentCategory);
-                    }
-                }
-            }, 1000);
+        
+        // 保存时间数据到本地存储
+        function saveTimeData() {
+            localStorage.setItem('timeData', JSON.stringify(timeData));
         }
-
-        function checkStartReady() {
-            const hasCat = currentCategory !== '';
-            const hasSub = subInput.value.trim() !== '';
-            
-            if (hasCat && hasSub) {
-                startBtn.disabled = false;
-                startBtn.style.opacity = '1';
-                startBtn.style.cursor = 'pointer';
+        
+        // 获取今天的日期字符串
+        function getTodayString() {
+            return new Date().toISOString().split('T')[0];
+        }
+        
+        // 格式化时间为 HH:MM:SS
+        function formatTime(seconds) {
+            const h = Math.floor(seconds / 3600);
+            const m = Math.floor((seconds % 3600) / 60);
+            const s = seconds % 60;
+            return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+        }
+        
+        // 更新当前状态显示
+        function updateCurrentStatus() {
+            const statusDisplay = document.getElementById('currentStatus');
+            if (currentPrimaryTag && currentSecondaryTag) {
+                const primaryName = config.primaryTags.find(tag => tag.id === currentPrimaryTag)?.name || '';
+                const secondaryName = config.secondaryTags[currentPrimaryTag]?.find(tag => tag.id === currentSecondaryTag)?.name || '';
+                statusDisplay.textContent = `当前状态：${primaryName} - ${secondaryName}`;
             } else {
-                startBtn.disabled = true;
-                startBtn.style.opacity = '0.6';
-                startBtn.style.cursor = 'not-allowed';
+                statusDisplay.textContent = '当前状态：未开始计时';
             }
         }
-
-        // === 计时逻辑 ===
+        
+        // 开始计时
         function startTimer() {
-            const sub = subInput.value.trim();
-            if (!currentCategory || !sub) return;
-
-            isRunning = true;
-            // 如果是 other，subInput 里的内容既是分类也是事项？
-            // 优化逻辑：如果选了 other，我们让用户在输入框填 "分类 - 事项" 或者简单点，就把输入框当事项，分类显示为 "其他"
-            // 为了体验更好：如果选了 other，输入框的第一部分作为分类？
-            // 简单方案：选了 other，输入框内容即为事项，分类显示为 "➕ 其他"
-            
-            let displayCat = currentCategory;
-            if (currentCategory === 'other') {
-                displayCat = '➕ 其他'; 
-                // 如果你想把输入的内容拆分，可以在这里做逻辑，比如用户输入 "读书 - 小说"
+            if (currentTimer) {
+                clearInterval(currentTimer);
             }
-
-            currentCategory = displayCat; // 锁定显示用的分类名
-            currentSubTask = sub;
-            startTime = Date.now();
-
-            // UI 更新
-            startBtn.style.display = 'none';
-            stopBtn.style.display = 'block';
-            statusEl.textContent = `${currentCategory} · ${currentSubTask}`;
             
-            // 禁用输入
-            subInput.disabled = true;
-            document.querySelectorAll('.cat-card').forEach(c => c.style.pointerEvents = 'none');
-            chipsArea.style.pointerEvents = 'none';
-
-            saveState();
-            timerInterval = setInterval(updateTimerDisplay, 1000);
-            updateTimerDisplay();
+            startTime = new Date();
+            currentTimer = setInterval(updateCurrentStatus, 1000);
+            updateCurrentStatus();
         }
-
-        function updateTimerDisplay() {
-            const elapsed = Date.now() - startTime;
-            timerEl.textContent = formatTime(elapsed);
-        }
-
-        function formatTime(ms) {
-            const totalSec = Math.floor(ms / 1000);
-            const h = Math.floor(totalSec / 3600).toString().padStart(2, '0');
-            const m = Math.floor((totalSec % 3600) / 60).toString().padStart(2, '0');
-            const s = (totalSec % 60).toString().padStart(2, '0');
-            return `${h}:${m}:${s}`;
-        }
-
+        
+        // 停止计时
         function stopTimer() {
-            clearInterval(timerInterval);
-            const elapsed = Date.now() - startTime;
-            
-            const record = {
-                id: Date.now(),
-                category: currentCategory,
-                subTask: currentSubTask,
-                duration: elapsed,
-                date: new Date().toISOString()
-            };
-            
-            saveRecord(record);
-            resetUI();
+            if (currentTimer) {
+                clearInterval(currentTimer);
+                currentTimer = null;
+                
+                // 记录本次计时
+                if (startTime && currentPrimaryTag && currentSecondaryTag) {
+                    const endTime = new Date();
+                    const duration = Math.floor((endTime - startTime) / 1000); // 秒
+                    const today = getTodayString();
+                    
+                    if (!timeData[today]) {
+                        timeData[today] = {};
+                    }
+                    
+                    const key = `${currentPrimaryTag}-${currentSecondaryTag}`;
+                    if (!timeData[today][key]) {
+                        timeData[today][key] = 0;
+                    }
+                    timeData[today][key] += duration;
+                    
+                    saveTimeData();
+                    renderDailyStats();
+                }
+                
+                startTime = null;
+            }
         }
-
-        function resetUI() {
-            isRunning = false;
-            startTime = null;
-            currentCategory = '';
-            currentSubTask = '';
+        
+        // 切换主标签
+        function selectPrimaryTag(tagId) {
+            // 停止当前计时
+            stopTimer();
             
-            timerEl.textContent = '00:00:00';
-            statusEl.textContent = '准备开始...';
-            startBtn.style.display = 'block';
-            stopBtn.style.display = 'none';
-            
-            subInput.disabled = false;
-            subInput.value = '';
-            document.querySelectorAll('.cat-card').forEach(c => {
-                c.style.pointerEvents = 'auto';
-                c.classList.remove('selected');
+            // 更新选中状态
+            document.querySelectorAll('.tag-btn').forEach(btn => {
+                btn.classList.remove('active');
             });
-            chipsArea.style.pointerEvents = 'auto';
-            chipsArea.innerHTML = '';
-            inputLabel.textContent = "具体事项";
-            subInput.placeholder = "先点击上方选择一个分类...";
-            startBtn.disabled = true;
-            startBtn.style.opacity = '0.6';
-
-            clearState();
-            loadHistory();
-        }
-
-        // === 数据持久化 ===
-        function saveRecord(record) {
-            const data = JSON.parse(localStorage.getItem(DB_KEY) || '[]');
-            data.unshift(record);
-            localStorage.setItem(DB_KEY, JSON.stringify(data));
-        }
-
-        function loadHistory() {
-            const data = JSON.parse(localStorage.getItem(DB_KEY) || '[]');
-            const today = new Date().toDateString();
             
-            historyList.innerHTML = '';
-            const todayRecords = data.filter(r => new Date(r.date).toDateString() === today);
-
-            if (todayRecords.length === 0) {
-                historyList.innerHTML = '<li style="text-align:center;color:#999;padding:30px;font-size:0.9rem;">今日暂无记录<br>快去开始第一个任务吧!</li>';
+            if (currentPrimaryTag === tagId) {
+                currentPrimaryTag = null;
+                currentSecondaryTag = null;
+            } else {
+                currentPrimaryTag = tagId;
+                document.querySelector(`.tag-btn[data-id="${tagId}"]`).classList.add('active');
+            }
+            
+            // 渲染子标签
+            renderSecondaryTags();
+            updateCurrentStatus();
+        }
+        
+        // 切换子标签
+        function selectSecondaryTag(tagId) {
+            if (currentSecondaryTag === tagId) {
+                stopTimer();
+                currentSecondaryTag = null;
+                
+                // 移除选中状态
+                document.querySelectorAll('.sub-tag-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+            } else {
+                currentSecondaryTag = tagId;
+                
+                // 更新选中状态
+                document.querySelectorAll('.sub-tag-btn').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+                document.querySelector(`.sub-tag-btn[data-id="${tagId}"]`).classList.add('active');
+                
+                // 开始计时
+                startTimer();
+            }
+            
+            updateCurrentStatus();
+        }
+        
+        // 渲染主标签
+        function renderPrimaryTags() {
+            const container = document.getElementById('primaryTags');
+            container.innerHTML = '';
+            
+            config.primaryTags.forEach(tag => {
+                const btn = document.createElement('button');
+                btn.className = `tag-btn ${tag.id}`;
+                btn.textContent = tag.name;
+                btn.dataset.id = tag.id;
+                btn.onclick = () => selectPrimaryTag(tag.id);
+                
+                if (currentPrimaryTag === tag.id) {
+                    btn.classList.add('active');
+                }
+                
+                container.appendChild(btn);
+            });
+        }
+        
+        // 渲染子标签
+        function renderSecondaryTags() {
+            const container = document.getElementById('secondaryTags');
+            container.innerHTML = '';
+            
+            if (currentPrimaryTag && config.secondaryTags[currentPrimaryTag]) {
+                config.secondaryTags[currentPrimaryTag].forEach(tag => {
+                    const btn = document.createElement('button');
+                    btn.className = 'sub-tag-btn';
+                    btn.textContent = tag.name;
+                    btn.dataset.id = tag.id;
+                    btn.onclick = () => selectSecondaryTag(tag.id);
+                    
+                    if (currentSecondaryTag === tag.id) {
+                        btn.classList.add('active');
+                    }
+                    
+                    container.appendChild(btn);
+                });
+            }
+        }
+        
+        // 渲染今日统计
+        function renderDailyStats() {
+            const container = document.getElementById('dailyStats');
+            const today = getTodayString();
+            
+            if (!timeData[today] || Object.keys(timeData[today]).length === 0) {
+                container.innerHTML = '<p>暂无今日统计数据</p>';
                 return;
             }
-
-            todayRecords.forEach(r => {
-                const li = document.createElement('li');
-                li.className = 'history-item';
-                li.setAttribute('data-cat', r.category); // 用于左侧颜色条
+            
+            container.innerHTML = '';
+            for (const [key, duration] of Object.entries(timeData[today])) {
+                const [primaryId, secondaryId] = key.split('-');
+                const primaryName = config.primaryTags.find(tag => tag.id === primaryId)?.name || primaryId;
+                const secondaryName = config.secondaryTags[primaryId]?.find(tag => tag.id === secondaryId)?.name || secondaryId;
                 
-                const timeStr = formatTime(r.duration);
-                const dateStr = new Date(r.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-                
-                li.innerHTML = `
-                    <div class="item-info">
-                        <div class="item-cat">${r.category}</div>
-                        <div class="item-sub">${r.subTask}</div>
-                        <div class="item-date">${dateStr}</div>
-                    </div>
-                    <div class="item-time">${timeStr}</div>
+                const item = document.createElement('div');
+                item.className = 'stat-item';
+                item.innerHTML = `
+                    <span>${primaryName} - ${secondaryName}</span>
+                    <span>${formatTime(duration)}</span>
                 `;
-                historyList.appendChild(li);
-            });
-        }
-
-        function clearTodayData() {
-            if(!confirm('确定清空今日所有记录吗？')) return;
-            const data = JSON.parse(localStorage.getItem(DB_KEY) || '[]');
-            const today = new Date().toDateString();
-            const newData = data.filter(r => new Date(r.date).toDateString() !== today);
-            localStorage.setItem(DB_KEY, JSON.stringify(newData));
-            loadHistory();
-        }
-
-        // === 状态恢复 ===
-        function saveState() {
-            const state = { isRunning: true, startTime, category: currentCategory, subTask: currentSubTask };
-            localStorage.setItem('timer_state_v2', JSON.stringify(state));
-        }
-        function clearState() { localStorage.removeItem('timer_state_v2'); }
-        function restoreState() {
-            const stateStr = localStorage.getItem('timer_state_v2');
-            if (!stateStr) return;
-            const state = JSON.parse(stateStr);
-            if (state.isRunning) {
-                startTime = state.startTime;
-                currentCategory = state.category;
-                currentSubTask = state.subTask;
-                statusEl.textContent = `${currentCategory} · ${currentSubTask}`;
-                startBtn.style.display = 'none';
-                stopBtn.style.display = 'block';
-                subInput.disabled = true;
-                document.querySelectorAll('.cat-card').forEach(c => c.style.pointerEvents = 'none');
-                chipsArea.style.pointerEvents = 'none';
-                timerInterval = setInterval(updateTimerDisplay, 1000);
-                updateTimerDisplay();
+                container.appendChild(item);
             }
         }
-
-        // === PWA 更新 ===
+        
+        // 检查更新
+        function checkForUpdate() {
+            // 这里可以实现实际的更新检查逻辑
+            // 目前只是模拟更新提示
+            alert('当前已是最新版本！');
+        }
+        
+        // 导出数据
+        function exportData() {
+            const dataStr = JSON.stringify({ timeData, config }, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `time_tracker_data_${getTodayString()}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+        
+        // 切换编辑器面板
+        function toggleEditor() {
+            const panel = document.getElementById('editorPanel');
+            panel.classList.toggle('active');
+            
+            if (panel.classList.contains('active')) {
+                renderParentSelect();
+            }
+        }
+        
+        // 渲染父标签选择
+        function renderParentSelect() {
+            const select = document.getElementById('parentTag');
+            select.innerHTML = '';
+            
+            config.primaryTags.forEach(tag => {
+                const option = document.createElement('option');
+                option.value = tag.id;
+                option.textContent = tag.name;
+                select.appendChild(option);
+            });
+        }
+        
+        // 保存标签
+        function saveTag() {
+            const tagType = document.getElementById('tagType').value;
+            const tagName = document.getElementById('tagName').value.trim();
+            
+            if (!tagName) {
+                alert('请输入标签名称');
+                return;
+            }
+            
+            if (tagType === 'primary') {
+                // 添加主标签
+                const newId = tagName.toLowerCase().replace(/\s+/g, '');
+                const newTag = {
+                    id: newId,
+                    name: tagName,
+                    color: '#9E9E9E'
+                };
+                
+                // 检查是否已存在
+                if (!config.primaryTags.some(tag => tag.id === newId)) {
+                    config.primaryTags.push(newTag);
+                    config.secondaryTags[newId] = [];
+                    saveConfig();
+                    renderPrimaryTags();
+                    document.getElementById('tagName').value = '';
+                } else {
+                    alert('主标签已存在');
+                }
+            } else {
+                // 添加子标签
+                const parentId = document.getElementById('parentTag').value;
+                const newId = tagName.toLowerCase().replace(/\s+/g, '');
+                
+                if (!config.secondaryTags[parentId]) {
+                    config.secondaryTags[parentId] = [];
+                }
+                
+                // 检查是否已存在
+                if (!config.secondaryTags[parentId].some(tag => tag.id === newId)) {
+                    const newTag = {
+                        id: newId,
+                        name: tagName
+                    };
+                    config.secondaryTags[parentId].push(newTag);
+                    saveConfig();
+                    if (currentPrimaryTag === parentId) {
+                        renderSecondaryTags();
+                    }
+                    document.getElementById('tagName').value = '';
+                } else {
+                    alert('子标签已存在');
+                }
+            }
+        }
+        
+        // 删除标签
+        function deleteTag() {
+            const tagType = document.getElementById('tagType').value;
+            const tagName = document.getElementById('tagName').value.trim();
+            
+            if (!tagName) {
+                alert('请选择要删除的标签');
+                return;
+            }
+            
+            if (tagType === 'primary') {
+                const tagId = config.primaryTags.find(tag => tag.name === tagName)?.id;
+                if (tagId) {
+                    // 检查是否有子标签
+                    if (config.secondaryTags[tagId] && config.secondaryTags[tagId].length > 0) {
+                        if (!confirm('此主标签下有子标签，确定要删除吗？')) {
+                            return;
+                        }
+                    }
+                    
+                    config.primaryTags = config.primaryTags.filter(tag => tag.id !== tagId);
+                    delete config.secondaryTags[tagId];
+                    saveConfig();
+                    renderPrimaryTags();
+                    renderSecondaryTags();
+                    document.getElementById('tagName').value = '';
+                }
+            } else {
+                const parentId = document.getElementById('parentTag').value;
+                const tagId = config.secondaryTags[parentId]?.find(tag => tag.name === tagName)?.id;
+                
+                if (tagId) {
+                    config.secondaryTags[parentId] = config.secondaryTags[parentId].filter(tag => tag.id !== tagId);
+                    saveConfig();
+                    if (currentPrimaryTag === parentId) {
+                        renderSecondaryTags();
+                    }
+                    document.getElementById('tagName').value = '';
+                }
+            }
+        }
+        
+        // 关闭编辑器
+        function closeEditor() {
+            document.getElementById('editorPanel').classList.remove('active');
+            document.getElementById('tagName').value = '';
+        }
+        
+        // 注册Service Worker
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
-                    .then(reg => {
-                        reg.addEventListener('updatefound', () => {
-                            const newWorker = reg.installing;
-                            newWorker.addEventListener('statechange', () => {
-                                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                                    document.getElementById('update-toast').style.display = 'flex';
-                                }
-                            });
-                        });
+                navigator.serviceWorker.register('/sw.js')
+                    .then(registration => {
+                        console.log('SW registered: ', registration);
+                    })
+                    .catch(registrationError => {
+                        console.log('SW registration failed: ', registrationError);
                     });
             });
         }
-
-        init();
+        
+        // PWA安装提示
+        window.addEventListener('beforeinstallprompt', (e) => {
+            // 阻止默认的安装提示
+            e.preventDefault();
+            deferredPrompt = e;
+            
+            // 显示安装提示
+            const installPrompt = document.getElementById('installPrompt');
+            installPrompt.style.display = 'flex';
+        });
+        
+        // 页面加载完成后初始化
+        window.onload = function() {
+            renderPrimaryTags();
+            renderSecondaryTags();
+            renderDailyStats();
+            
+            // 设置标签类型变化事件
+            document.getElementById('tagType').addEventListener('change', function() {
+                const parentGroup = document.getElementById('parentSelectGroup');
+                parentGroup.style.display = this.value === 'secondary' ? 'block' : 'none';
+            });
+            
+            // 恢复之前的计时状态
+            const savedState = JSON.parse(localStorage.getItem('currentState')) || {};
+            if (savedState.currentPrimaryTag) {
+                currentPrimaryTag = savedState.currentPrimaryTag;
+                currentSecondaryTag = savedState.currentSecondaryTag;
+                if (savedState.startTime) {
+                    startTime = new Date(savedState.startTime);
+                    startTimer();
+                }
+            }
+        };
+        
+        // 页面隐藏/显示时保存状态
+        window.addEventListener('beforeunload', function() {
+            const stateToSave = {
+                currentPrimaryTag,
+                currentSecondaryTag,
+                startTime: startTime ? startTime.getTime() : null
+            };
+            localStorage.setItem('currentState', JSON.stringify(stateToSave));
+        });
+        
+        // 处理页面可见性变化
+        document.addEventListener('visibilitychange', function() {
+            if (document.hidden) {
+                // 页面隐藏时保存状态
+                const stateToSave = {
+                    currentPrimaryTag,
+                    currentSecondaryTag,
+                    startTime: startTime ? startTime.getTime() : null
+                };
+                localStorage.setItem('currentState', JSON.stringify(stateToSave));
+            } else {
+                // 页面显示时恢复状态
+                const savedState = JSON.parse(localStorage.getItem('currentState')) || {};
+                if (savedState.startTime) {
+                    startTime = new Date(savedState.startTime);
+                    startTimer();
+                }
+            }
+        });
     </script>
 </body>
 </html>
