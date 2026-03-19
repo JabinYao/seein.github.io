@@ -1,66 +1,52 @@
-const CACHE_NAME = 'time-tracker-pro-v1'; 
-const ASSETS = [
-  './',
-  './index.html',
-  './manifest.json'
+const CACHE_NAME = 'time-tracker-v1';
+const urlsToCache = [
+  '/',
+  '/manifest.json',
 ];
 
-// 1. 安装：缓存核心资源
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS);
-    })
-  );
-  self.skipWaiting();
-});
-
-// 2. 激活：清理旧缓存
-self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then((keyList) => {
-      return Promise.all(
-        keyList.map((key) => {
-          if (key !== CACHE_NAME) {
-            return caches.delete(key);
-          }
-        })
-      );
-    })
-  );
-  self.clients.claim();
-});
-
-// 3. 拦截请求：智能策略
-self.addEventListener('fetch', (event) => {
-  // 对主文档 (HTML) 采用 "网络优先" 策略
-  if (event.request.mode === 'navigate' && event.request.method === 'GET') {
-    event.respondWith(
-      fetch(event.request)
-        .then((response) => {
-          const responseClone = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseClone);
-          });
-          return response;
-        })
-        .catch(() => {
-          return caches.match(event.request);
-        })
-    );
-  } else {
-    // 对其他资源采用 "缓存优先"
-    event.respondWith(
-      caches.match(event.request).then((response) => {
-        return response || fetch(event.request);
+    caches.open(CACHE_NAME)
+      .then((cache) => {
+        return cache.addAll(urlsToCache);
       })
-    );
-  }
+  );
 });
 
-// 4. 消息处理
-self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request)
+      .then((response) => {
+        // 返回缓存的响应，如果没有则发起网络请求
+        return response || fetch(event.request);
+      }
+    )
+  );
 });
+
+// 后台同步功能（如果浏览器支持）
+if ('sync' in self.registration) {
+  self.addEventListener('sync', (event) => {
+    if (event.tag === 'time-sync') {
+      event.waitUntil(syncTimeData());
+    }
+  });
+}
+
+async function syncTimeData() {
+  try {
+    // 这里可以实现后台同步逻辑
+    // 从localStorage获取数据并同步到服务器（如果有）
+    const timeData = await getTimeDataFromStorage();
+    // 发送到服务器的逻辑
+    console.log('后台同步时间数据:', timeData);
+  } catch (error) {
+    console.error('后台同步失败:', error);
+  }
+}
+
+async function getTimeDataFromStorage() {
+  // Service Worker不能直接访问localStorage，这里仅作示例
+  // 实际实现需要通过postMessage与主页面通信
+  return {};
+}
