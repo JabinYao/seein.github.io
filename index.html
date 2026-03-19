@@ -59,6 +59,7 @@
         .btn-add { background: var(--primary); color: white; border: none; padding: 0 20px; border-radius: 8px; font-weight: 600; cursor: pointer; }
         .app-meta { margin-top: 10px; font-size: 0.78rem; color: rgba(255,255,255,0.85); display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
         .meta-link { color: inherit; background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.2); border-radius: 999px; padding: 4px 10px; cursor: pointer; }
+        .meta-link:disabled { opacity: 0.6; cursor: wait; }
         
         .card { background: var(--card-bg); border-radius: 24px; padding: 24px; box-shadow: 0 20px 50px rgba(15,23,42,0.08); margin-bottom: 20px; }
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; border-bottom: 1px solid #F3F4F6; padding-bottom: 10px; }
@@ -191,7 +192,7 @@
         <div class="date" id="currentDate">加载中...</div>
         <div class="app-meta">
             <span id="versionLabel">版本 --</span>
-            <button type="button" class="meta-link" onclick="manualCheckForUpdates()">检查更新</button>
+            <button type="button" class="meta-link" id="checkUpdateBtn" onclick="manualCheckForUpdates()">检查更新</button>
         </div>
     </div>
 
@@ -353,8 +354,8 @@
             { name: '社交', subTags: ['家人', '朋友', '线上交流'] },
             { name: '学习', subTags: ['阅读', '课程', '练习'] }
         ];
-        const APP_VERSION = '2026.03.21';
-        const VERSION_FILE_URL = 'version.json';
+        const APP_VERSION = '2026.03.22';
+        const VERSION_FILE_URL = new URL('version.json', window.location.href).toString();
         const UPDATE_CHECK_INTERVAL = 5 * 60 * 1000;
         const UPDATE_DISMISS_KEY = 'timeTrackerDismissedVersion';
         
@@ -372,6 +373,13 @@
             if (label) {
                 label.textContent = `版本 ${APP_VERSION}`;
             }
+        }
+
+        function setCheckUpdateButtonState(label = '检查更新', disabled = false) {
+            const button = document.getElementById('checkUpdateBtn');
+            if (!button) return;
+            button.textContent = label;
+            button.disabled = disabled;
         }
 
         function compareVersions(a, b) {
@@ -460,14 +468,11 @@
                     });
                     return true;
                 }
-                if (!silent) {
-                    alert('当前已经是最新版本。');
-                }
                 return false;
             } catch (error) {
                 console.error('Check update failed:', error);
                 if (!silent) {
-                    alert('检查更新失败，请稍后再试。');
+                    throw error;
                 }
                 return false;
             }
@@ -480,12 +485,30 @@
             }, UPDATE_CHECK_INTERVAL);
         }
 
-        window.manualCheckForUpdates = function() {
-            checkForUpdates({ silent: false });
-            if (serviceWorkerRegistration && typeof serviceWorkerRegistration.update === 'function') {
-                serviceWorkerRegistration.update().catch(error => {
-                    console.error('Manual SW update failed:', error);
-                });
+        window.manualCheckForUpdates = async function() {
+            setCheckUpdateButtonState('检查中...', true);
+            try {
+                if (serviceWorkerRegistration && typeof serviceWorkerRegistration.update === 'function') {
+                    await serviceWorkerRegistration.update();
+                    if (serviceWorkerRegistration.waiting) {
+                        handleServiceWorkerUpdate(serviceWorkerRegistration.waiting);
+                        setCheckUpdateButtonState('发现更新', false);
+                        return;
+                    }
+                }
+
+                const hasRemoteUpdate = await checkForUpdates({ silent: false });
+                if (hasRemoteUpdate) {
+                    setCheckUpdateButtonState('发现更新', false);
+                    return;
+                }
+
+                alert(`当前已是最新版本 ${APP_VERSION}`);
+            } catch (error) {
+                console.error('Manual update check failed:', error);
+                alert('检查更新失败，请确认 version.json 已部署后再试。');
+            } finally {
+                setCheckUpdateButtonState('检查更新', false);
             }
         };
 
