@@ -13,7 +13,7 @@
         * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
         
-        .header { background: var(--primary); color: white; padding: 20px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 10; position: relative; }
+        .header { background: var(--primary); color: white; padding: 16px 18px 12px; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.1); z-index: 10; position: relative; }
         .real-time { font-size: 2.5rem; font-weight: 700; letter-spacing: 2px; font-variant-numeric: tabular-nums; }
         .date { font-size: 0.9rem; opacity: 0.9; margin-top: 5px; }
         .settings-btn { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,0.2); border: none; color: white; width: 36px; height: 36px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; display: flex; align-items: center; justify-content: center; }
@@ -31,24 +31,24 @@
         .update-btn.primary { background: var(--primary); color: white; }
         .update-btn.secondary { background: white; color: var(--text); border: 1px solid #D1D5DB; }
         
-        .status-card { background: var(--card-bg); border-radius: 24px; padding: 30px; text-align: center; box-shadow: 0 20px 50px rgba(15,23,42,0.08); margin-bottom: 20px; min-height: 100%; }
+        .status-card { background: var(--card-bg); border-radius: 24px; padding: 22px 18px 16px; text-align: center; box-shadow: 0 20px 50px rgba(15,23,42,0.08); margin-bottom: 20px; min-height: 100%; }
         .current-status-label { font-size: 0.9rem; color: var(--text-light); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px; }
-        .current-status { font-size: clamp(1.9rem, 3vw, 3rem); font-weight: 800; color: var(--primary); margin-bottom: 18px; min-height: 48px; }
-        .timer { font-size: clamp(3.8rem, 7vw, 6rem); font-weight: 800; font-variant-numeric: tabular-nums; color: var(--text); margin-bottom: 32px; font-feature-settings: "tnum"; }
+        .current-status { font-size: clamp(1.35rem, 2.8vw, 2.5rem); font-weight: 800; color: var(--primary); margin-bottom: 12px; min-height: 34px; }
+        .timer { font-size: clamp(3.1rem, 6vw, 5.2rem); font-weight: 800; font-variant-numeric: tabular-nums; color: var(--text); margin-bottom: 18px; font-feature-settings: "tnum"; line-height: 1; }
         
-        .status-buttons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-bottom: 18px; }
-        .status-btn { background: white; border: 2px solid #E5E7EB; color: var(--text); padding: 18px 10px; border-radius: 18px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.2s; touch-action: manipulation; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 86px; }
+        .status-buttons { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
+        .status-btn { background: white; border: 2px solid #E5E7EB; color: var(--text); padding: 12px 8px; border-radius: 16px; font-size: 0.96rem; font-weight: 700; cursor: pointer; transition: all 0.2s; touch-action: manipulation; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 68px; }
         .status-btn:active { transform: scale(0.95); }
         .status-btn.active { background: var(--primary); color: white; border-color: var(--primary); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3); }
-        .sub-status-panel { margin-bottom: 20px; text-align: left; }
+        .sub-status-panel { margin-bottom: 12px; text-align: left; }
         .sub-status-panel.hidden { display: none; }
-        .sub-status-label { font-size: 0.95rem; color: var(--text-light); margin-bottom: 12px; }
-        .sub-status-buttons { display: flex; flex-wrap: wrap; gap: 12px; }
-        .sub-status-btn { background: #EEF2FF; color: var(--primary); border: 1px solid #C7D2FE; border-radius: 999px; padding: 14px 20px; font-size: 1rem; font-weight: 700; cursor: pointer; min-height: 52px; }
+        .sub-status-label { font-size: 0.86rem; color: var(--text-light); margin-bottom: 8px; }
+        .sub-status-buttons { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+        .sub-status-btn { background: #EEF2FF; color: var(--primary); border: 1px solid #C7D2FE; border-radius: 12px; padding: 10px 6px; font-size: 0.84rem; font-weight: 700; cursor: pointer; min-height: 44px; }
         .sub-status-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
         .status-btn.custom { background: #FFF7ED; border-color: #FDBA74; color: #C2410C; }
         .status-btn.custom.active { background: #C2410C; color: white; border-color: #C2410C; }
-        .btn-manage { grid-column: 1 / -1; background: #F9FAFB; border: 1px dashed #D1D5DB; color: var(--text-light); font-size: 0.95rem; padding: 16px; margin-top: 8px; min-height: 68px; }
+        .btn-manage { grid-column: 1 / -1; background: #F9FAFB; border: 1px dashed #D1D5DB; color: var(--text-light); font-size: 0.84rem; padding: 10px; margin-top: 0; min-height: 44px; }
         .btn-manage:active { background: #E5E7EB; }
 
         .custom-input-container { display: none; margin-top: 15px; animation: slideDown 0.3s ease; }
@@ -57,7 +57,12 @@
         input[type="text"] { flex: 1; padding: 12px; border: 2px solid #E5E7EB; border-radius: 8px; font-size: 1rem; outline: none; }
         input[type="text"]:focus { border-color: var(--primary); }
         .btn-add { background: var(--primary); color: white; border: none; padding: 0 20px; border-radius: 8px; font-weight: 600; cursor: pointer; }
-        .app-meta { margin-top: 10px; font-size: 0.78rem; color: rgba(255,255,255,0.85); display: flex; justify-content: center; gap: 10px; flex-wrap: wrap; }
+        .app-meta-wrap { margin-top: 6px; display: flex; justify-content: center; }
+        .app-meta { margin-top: 0; font-size: 0.78rem; color: rgba(255,255,255,0.9); width: min(220px, 100%); }
+        .app-meta summary { list-style: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; margin: 0 auto; padding: 5px 10px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.22); background: rgba(255,255,255,0.12); cursor: pointer; }
+        .app-meta summary::-webkit-details-marker { display: none; }
+        .app-meta-panel { margin-top: 8px; padding: 10px 12px; border-radius: 14px; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.18); display: grid; gap: 8px; }
+        .meta-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 0.82rem; }
         .meta-link { color: inherit; background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.2); border-radius: 999px; padding: 4px 10px; cursor: pointer; }
         .meta-link:disabled { opacity: 0.6; cursor: wait; }
         
@@ -164,19 +169,34 @@
             .real-time { font-size: 3.3rem; }
             .date { font-size: 1rem; }
             .status-buttons { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+            .sub-status-buttons { grid-template-columns: repeat(4, minmax(0, 1fr)); }
             .history-layout { grid-template-columns: minmax(0, 1.1fr) minmax(360px, 0.9fr); }
             .pie-wrap { grid-template-columns: minmax(260px, 320px) minmax(0, 1fr); }
         }
         @media (max-width: 720px) {
-            .container { padding: 16px; padding-bottom: 100px; }
+            .container { padding: 12px; padding-bottom: 92px; }
             .update-banner { margin: 0 0 14px; }
-            .status-buttons { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .header { padding: 12px 14px 10px; }
+            .real-time { font-size: 1.95rem; letter-spacing: 1px; }
+            .date { font-size: 0.8rem; margin-top: 2px; }
+            .settings-btn { width: 34px; height: 34px; font-size: 1rem; right: 10px; }
+            .status-card { padding: 16px 14px 12px; }
+            .current-status-label { font-size: 0.78rem; margin-bottom: 6px; }
+            .current-status { font-size: 1.05rem; margin-bottom: 10px; min-height: 24px; }
+            .timer { font-size: 2.85rem; margin-bottom: 12px; }
+            .status-buttons { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 10px; }
+            .status-btn { min-height: 62px; padding: 8px 4px; font-size: 0.84rem; border-radius: 14px; }
+            .sub-status-panel { margin-bottom: 10px; }
+            .sub-status-buttons { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+            .sub-status-btn { min-height: 42px; padding: 8px 4px; font-size: 0.8rem; }
+            .btn-manage { min-height: 42px; font-size: 0.8rem; }
             .bar-row { grid-template-columns: 1fr; }
             .bar-value { text-align: left; }
             .summary-group-header { grid-template-columns: minmax(0, 1fr) auto; }
             .summary-group-time, .summary-group-percent { grid-column: 1 / 2; }
-            .toolbar { gap: 10px; }
+            .toolbar { gap: 10px; padding: 10px 12px; }
             .tool-btn { min-width: 0; flex: 1; }
+            .tool-btn span:last-child { font-size: 0.88rem; }
         }
         
         ::-webkit-scrollbar { width: 6px; }
@@ -190,9 +210,16 @@
         <button class="settings-btn" onclick="openTagManager()">⚙️</button>
         <div class="real-time" id="realTime">00:00:00</div>
         <div class="date" id="currentDate">加载中...</div>
-        <div class="app-meta">
-            <span id="versionLabel">版本 --</span>
-            <button type="button" class="meta-link" id="checkUpdateBtn" onclick="manualCheckForUpdates()">检查更新</button>
+        <div class="app-meta-wrap">
+            <details class="app-meta">
+                <summary>更多</summary>
+                <div class="app-meta-panel">
+                    <div class="meta-row">
+                        <span id="versionLabel">版本 --</span>
+                        <button type="button" class="meta-link" id="checkUpdateBtn" onclick="manualCheckForUpdates()">检查更新</button>
+                    </div>
+                </div>
+            </details>
         </div>
     </div>
 
@@ -354,7 +381,7 @@
             { name: '社交', subTags: ['家人', '朋友', '线上交流'] },
             { name: '学习', subTags: ['阅读', '课程', '练习'] }
         ];
-        const APP_VERSION = '2026.03.22';
+        const APP_VERSION = '2026.03.23';
         const VERSION_FILE_URL = new URL('version.json', window.location.href).toString();
         const UPDATE_CHECK_INTERVAL = 5 * 60 * 1000;
         const UPDATE_DISMISS_KEY = 'timeTrackerDismissedVersion';
