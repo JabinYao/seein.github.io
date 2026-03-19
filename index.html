@@ -14,7 +14,7 @@ body{background:#f5f5f5;padding-bottom:80px}
 .tagBar{display:flex;flex-wrap:wrap;gap:8px;padding:10px}
 .tag{background:white;padding:10px 14px;border-radius:8px;flex:1;min-width:100px;text-align:center;box-shadow:0 1px 3px #0001}
 .tag.active{background:#4169E1;color:white}
-.subTags{display:block;padding:10px} /* 始终显示二级标签区域 */
+.subTags{display:block;padding:10px}
 .subBtn{background:white;border:1px solid #ddd;padding:8px;margin:4px;border-radius:6px}
 .subBtn.active{background:#4169E1;color:white}
 .summary{background:white;margin:10px;padding:14px;border-radius:8px}
@@ -82,7 +82,6 @@ body{background:#f5f5f5;padding-bottom:80px}
   <div class="tab" onclick="goPage('pageStats')">统计</div>
 </div>
 
-<!-- 主设置弹窗 -->
 <div class="modal" id="settingModal">
   <div class="modalBody">
     <div class="modalTitle">标签管理</div>
@@ -94,7 +93,6 @@ body{background:#f5f5f5;padding-bottom:80px}
   </div>
 </div>
 
-<!-- 一级标签管理弹窗 -->
 <div class="modal" id="tagManageModal">
   <div class="modalBody">
     <div class="modalTitle">管理一级标签</div>
@@ -113,14 +111,12 @@ body{background:#f5f5f5;padding-bottom:80px}
   </div>
 </div>
 
-<!-- 二级标签管理弹窗 -->
 <div class="modal" id="subTagManageModal">
   <div class="modalBody">
     <div class="modalTitle">管理二级标签</div>
     <div class="inputItem">
       <label>选择一级标签</label>
       <select id="mainTagSelect" style="width:100%;padding:8px;border:1px solid #ddd;border-radius:6px">
-        <!-- 动态填充一级标签 -->
       </select>
     </div>
     <div class="inputItem">
@@ -140,7 +136,7 @@ body{background:#f5f5f5;padding-bottom:80px}
 
 <script>
 // ==========================
-// 1. 初始化数据（读取所有旧数据，保证不丢失）
+// 1. 初始化数据（兼容所有旧数据格式，解决undefined）
 // ==========================
 // 一级标签
 let mainTags = JSON.parse(localStorage.getItem('mainTags')) || [
@@ -152,7 +148,7 @@ let mainTags = JSON.parse(localStorage.getItem('mainTags')) || [
   { id: 'tag_6', name: '碎片泄露' }
 ];
 
-// 二级标签（按一级标签ID分组）
+// 二级标签
 let subTags = JSON.parse(localStorage.getItem('subTags')) || {
   'tag_1': ['开会', '写文档', '对接需求', '处理邮件', '编程开发'],
   'tag_2': ['学英语', '看书', '写代码', '查资料', '网课学习'],
@@ -162,59 +158,62 @@ let subTags = JSON.parse(localStorage.getItem('subTags')) || {
   'tag_6': ['刷短视频', '无目的浏览', '闲聊', '等待', '其他']
 };
 
-// 计时记录（兼容所有旧数据）
+// 计时记录（兼容旧数据格式，解决undefined）
 let records = JSON.parse(localStorage.getItem('timeRecordsV2')) || 
               JSON.parse(localStorage.getItem('timeRecords')) || [];
 
-// 计时状态（核心：后台杀死不丢失）
-let currentTagId = localStorage.getItem('currentTagId') || '';
-let currentSubTag = localStorage.getItem('currentSubTag') || '';
-let startTimeMs = Number(localStorage.getItem('startTimeMs')) || 0;
+// 兼容旧数据结构，补全缺失字段
+records = records.map(rec => {
+  // 补全基础字段
+  rec.id = rec.id || 'rec_' + Date.now();
+  rec.mainTagId = rec.mainTagId || rec.tagId || '';
+  rec.mainTagName = rec.mainTagName || rec.tagName || '未知标签';
+  rec.subTagName = rec.subTagName || rec.sub || '未选择';
+  rec.startTime = rec.startTime || rec.start || new Date().toISOString();
+  rec.endTime = rec.endTime || rec.end || new Date().toISOString();
+  rec.duration = rec.duration || rec.dur || 0;
+  rec.date = rec.date || new Date().toISOString().split('T')[0];
+  return rec;
+});
+
+// 计时状态
+let currentTagId = localStorage.getItem('currentTagId') || localStorage.getItem('currentTag') || '';
+let currentSubTag = localStorage.getItem('currentSubTag') || localStorage.getItem('currentSub') || '';
+let startTimeMs = Number(localStorage.getItem('startTimeMs')) || Number(localStorage.getItem('startMs')) || 0;
 let timerInterval = null;
 
 // ==========================
 // 2. 页面初始化
 // ==========================
 window.onload = () => {
-  // 渲染一级标签
   renderMainTags();
-  // 渲染一级标签选择器（用于二级标签管理）
   renderMainTagSelect();
-  // 渲染一级标签列表（用于管理）
   renderMainTagList();
-  // 初始化二级标签管理（默认选中第一个一级标签）
   initSubTagManage();
   
-  // 恢复计时状态
   if (currentTagId && startTimeMs > 0) {
     renderSubTags(currentTagId);
     startTimer();
   }
   
-  // 实时更新今日统计
   updateTodaySummary();
   setInterval(updateTodaySummary, 1000);
-  
-  // 初始化历史统计
   updateHistoryStats();
 };
 
 // ==========================
-// 3. 核心功能：强制更新（100%可用）
+// 3. 强制更新
 // ==========================
 function forceUpdate() {
   if (confirm('确定强制更新？所有数据会保留')) {
-    // 保存当前状态
     saveCurrentState();
-    // 强制硬刷新
     window.location.reload(true);
   }
 }
 
 // ==========================
-// 4. 计时核心逻辑（后台杀死不丢失）
+// 4. 计时核心逻辑
 // ==========================
-// 开始计时
 function startTimer() {
   clearInterval(timerInterval);
   timerInterval = setInterval(() => {
@@ -226,24 +225,19 @@ function startTimer() {
   }, 1000);
 }
 
-// 停止计时
 function stopTimer() {
   if (!timerInterval || !currentTagId || startTimeMs === 0) return;
   
-  // 清除计时器
   clearInterval(timerInterval);
   timerInterval = null;
   
-  // 计算时长
   const endTimeMs = Date.now();
   const duration = Math.floor((endTimeMs - startTimeMs) / 1000);
   const today = new Date().toISOString().split('T')[0];
   
-  // 获取一级标签名称
-  const mainTag = mainTags.find(t => t.id === currentTagId);
-  const mainTagName = mainTag ? mainTag.name : '未知标签';
+  const mainTag = mainTags.find(t => t.id === currentTagId) || { name: '未知标签' };
+  const mainTagName = mainTag.name;
   
-  // 添加记录
   records.push({
     id: 'rec_' + Date.now(),
     mainTagId: currentTagId,
@@ -255,26 +249,21 @@ function stopTimer() {
     date: today
   });
   
-  // 保存记录
   localStorage.setItem('timeRecordsV2', JSON.stringify(records));
   
-  // 重置状态
   currentTagId = '';
   currentSubTag = '';
   startTimeMs = 0;
   saveCurrentState();
   
-  // 重置界面
   document.getElementById('clock').textContent = '00:00:00';
   renderMainTags();
   renderSubTags('');
   
-  // 更新统计
   updateTodaySummary();
   updateHistoryStats();
 }
 
-// 保存当前计时状态到本地
 function saveCurrentState() {
   localStorage.setItem('currentTagId', currentTagId);
   localStorage.setItem('currentSubTag', currentSubTag);
@@ -284,7 +273,6 @@ function saveCurrentState() {
 // ==========================
 // 5. 一级标签管理
 // ==========================
-// 渲染一级标签
 function renderMainTags() {
   const container = document.getElementById('tagContainer');
   container.innerHTML = '';
@@ -292,23 +280,16 @@ function renderMainTags() {
   mainTags.forEach(tag => {
     const tagDiv = document.createElement('div');
     tagDiv.className = 'tag' + (currentTagId === tag.id ? ' active' : '');
-    tagDiv.textContent = tag.name;
+    tagDiv.textContent = tag.name || '未知标签';
     
     tagDiv.onclick = () => {
-      // 停止当前计时
       stopTimer();
-      
-      // 更新当前标签
       currentTagId = tag.id;
       currentSubTag = '';
       startTimeMs = Date.now();
       saveCurrentState();
-      
-      // 重新渲染
       renderMainTags();
       renderSubTags(tag.id);
-      
-      // 开始新计时
       startTimer();
     };
     
@@ -316,23 +297,20 @@ function renderMainTags() {
   });
 }
 
-// 渲染一级标签选择器（用于二级标签管理）
 function renderMainTagSelect() {
   const select = document.getElementById('mainTagSelect');
   select.innerHTML = '';
   
   mainTags.forEach(tag => {
     const option = document.createElement('option');
-    option.value = tag.id;
-    option.textContent = tag.name;
+    option.value = tag.id || '';
+    option.textContent = tag.name || '未知标签';
     select.appendChild(option);
   });
   
-  // 绑定选择事件
   select.onchange = initSubTagManage;
 }
 
-// 渲染一级标签列表（用于管理）
 function renderMainTagList() {
   const list = document.getElementById('mainTagList');
   list.innerHTML = '';
@@ -341,14 +319,13 @@ function renderMainTagList() {
     const item = document.createElement('div');
     item.className = 'subTagItem';
     item.innerHTML = `
-      <span>${tag.name}</span>
+      <span>${tag.name || '未知标签'}</span>
       <button class="subTagDelBtn" onclick="deleteMainTag(${index})">删除</button>
     `;
     list.appendChild(item);
   });
 }
 
-// 添加一级标签
 function addMainTag() {
   const input = document.getElementById('newTagName');
   const name = input.value.trim();
@@ -358,49 +335,38 @@ function addMainTag() {
     return;
   }
   
-  // 生成唯一ID
   const newTag = {
     id: 'tag_' + Date.now(),
     name: name
   };
   
-  // 添加并保存
   mainTags.push(newTag);
   localStorage.setItem('mainTags', JSON.stringify(mainTags));
   
-  // 初始化该标签的二级标签
   if (!subTags[newTag.id]) {
     subTags[newTag.id] = [];
     localStorage.setItem('subTags', JSON.stringify(subTags));
   }
   
-  // 重新渲染
   renderMainTags();
   renderMainTagSelect();
   renderMainTagList();
-  
-  // 清空输入
   input.value = '';
 }
 
-// 删除一级标签
 function deleteMainTag(index) {
   if (!confirm('确定删除该一级标签？相关二级标签也会被删除')) {
     return;
   }
   
-  // 获取要删除的标签ID
   const tagId = mainTags[index].id;
   
-  // 删除一级标签
   mainTags.splice(index, 1);
   localStorage.setItem('mainTags', JSON.stringify(mainTags));
   
-  // 删除对应的二级标签
   delete subTags[tagId];
   localStorage.setItem('subTags', JSON.stringify(subTags));
   
-  // 重新渲染
   renderMainTags();
   renderMainTagSelect();
   renderMainTagList();
@@ -408,28 +374,23 @@ function deleteMainTag(index) {
 }
 
 // ==========================
-// 6. 二级标签管理（完整功能）
+// 6. 二级标签管理
 // ==========================
-// 初始化二级标签管理
 function initSubTagManage() {
   const select = document.getElementById('mainTagSelect');
   const mainTagId = select.value;
   
-  // 更新标题
-  const mainTag = mainTags.find(t => t.id === mainTagId);
+  const mainTag = mainTags.find(t => t.id === mainTagId) || { name: '未知标签' };
   document.getElementById('subTagTitle').textContent = 
-    `【${mainTag ? mainTag.name : '未知'}】的二级标签：`;
+    `【${mainTag.name}】的二级标签：`;
   
-  // 渲染二级标签列表
   renderSubTagList(mainTagId);
 }
 
-// 渲染二级标签
 function renderSubTags(mainTagId) {
   const container = document.getElementById('subBtns');
   container.innerHTML = '';
   
-  // 获取该一级标签的二级标签
   const subs = subTags[mainTagId] || [];
   
   if (subs.length === 0) {
@@ -437,18 +398,14 @@ function renderSubTags(mainTagId) {
     return;
   }
   
-  // 渲染二级标签按钮
   subs.forEach(sub => {
     const btn = document.createElement('button');
     btn.className = 'subBtn' + (currentSubTag === sub ? ' active' : '');
-    btn.textContent = sub;
+    btn.textContent = sub || '未知';
     
     btn.onclick = () => {
-      // 更新当前二级标签
       currentSubTag = sub;
       saveCurrentState();
-      
-      // 重新渲染
       renderSubTags(mainTagId);
     };
     
@@ -456,7 +413,6 @@ function renderSubTags(mainTagId) {
   });
 }
 
-// 渲染二级标签列表（用于管理）
 function renderSubTagList(mainTagId) {
   const list = document.getElementById('subTagList');
   list.innerHTML = '';
@@ -467,7 +423,7 @@ function renderSubTagList(mainTagId) {
     const item = document.createElement('div');
     item.className = 'subTagItem';
     item.innerHTML = `
-      <span>${sub}</span>
+      <span>${sub || '未知'}</span>
       <button class="subTagDelBtn" onclick="deleteSubTag('${mainTagId}', ${index})">删除</button>
     `;
     list.appendChild(item);
@@ -478,7 +434,6 @@ function renderSubTagList(mainTagId) {
   }
 }
 
-// 添加二级标签
 function addSubTag() {
   const select = document.getElementById('mainTagSelect');
   const mainTagId = select.value;
@@ -490,83 +445,68 @@ function addSubTag() {
     return;
   }
   
-  // 初始化该一级标签的二级标签数组
   if (!subTags[mainTagId]) {
     subTags[mainTagId] = [];
   }
   
-  // 避免重复
   if (subTags[mainTagId].includes(name)) {
     alert('该二级标签已存在');
     return;
   }
   
-  // 添加并保存
   subTags[mainTagId].push(name);
   localStorage.setItem('subTags', JSON.stringify(subTags));
   
-  // 重新渲染
   initSubTagManage();
   
-  // 如果当前正在使用该一级标签，更新计时界面的二级标签
   if (currentTagId === mainTagId) {
     renderSubTags(mainTagId);
   }
   
-  // 清空输入
   input.value = '';
 }
 
-// 删除二级标签
 function deleteSubTag(mainTagId, index) {
   if (!confirm('确定删除该二级标签？')) {
     return;
   }
   
-  // 删除
   subTags[mainTagId].splice(index, 1);
   localStorage.setItem('subTags', JSON.stringify(subTags));
   
-  // 如果删除的是当前选中的二级标签，重置
   if (currentSubTag === subTags[mainTagId][index]) {
     currentSubTag = '';
     saveCurrentState();
   }
   
-  // 重新渲染
   initSubTagManage();
   
-  // 如果当前正在使用该一级标签，更新计时界面的二级标签
   if (currentTagId === mainTagId) {
     renderSubTags(mainTagId);
   }
 }
 
 // ==========================
-// 7. 统计功能（完全保留所有数据）
+// 7. 统计功能（彻底解决undefined）
 // ==========================
-// 更新今日汇总
 function updateTodaySummary() {
   const today = new Date().toISOString().split('T')[0];
   const summary = {};
   
-  // 汇总已结束的记录
   records.forEach(rec => {
     if (rec.date === today) {
-      const key = rec.mainTagName;
+      const key = rec.mainTagName || '未知标签';
       summary[key] = (summary[key] || 0) + (rec.duration || 0);
     }
   });
   
-  // 加上正在进行的计时
   if (currentTagId && startTimeMs > 0) {
-    const mainTag = mainTags.find(t => t.id === currentTagId);
-    const key = mainTag ? mainTag.name : '未知标签';
+    const mainTag = mainTags.find(t => t.id === currentTagId) || { name: '未知标签' };
+    const key = mainTag.name;
     const currentDuration = Math.floor((Date.now() - startTimeMs) / 1000);
     summary[key] = (summary[key] || 0) + currentDuration;
   }
   
-  // 渲染
   let html = '';
   for (const [tagName, totalSeconds] of Object.entries(summary)) {
     html += `<div class="row">
@@ -582,24 +522,20 @@ function updateTodaySummary() {
   document.getElementById('todaySum').innerHTML = html;
 }
 
-// 更新历史统计
 function updateHistoryStats() {
   const groups = {};
   
-  // 按日期分组
   records.forEach(rec => {
     const date = rec.date || '未知日期';
     if (!groups[date]) {
       groups[date] = {};
     }
-    const key = rec.mainTagName;
+    const key = rec.mainTagName || '未知标签';
     groups[date][key] = (groups[date][key] || 0) + (rec.duration || 0);
   });
   
-  // 按日期倒序排序
   const sortedDates = Object.keys(groups).sort((a, b) => new Date(b) - new Date(a));
   
-  // 渲染
   let html = '';
   sortedDates.forEach(date => {
     html += `<div style="font-weight:bold;margin-top:8px">${date}</div>`;
@@ -619,9 +555,8 @@ function updateHistoryStats() {
   document.getElementById('historyList').innerHTML = html;
 }
 
-// 格式化时长
 function formatDuration(seconds) {
-  const totalSeconds = Math.round(seconds);
+  const totalSeconds = Math.round(seconds || 0);
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const secs = totalSeconds % 60;
@@ -644,7 +579,6 @@ function goPage(pageId) {
   document.getElementById(pageId).classList.add('active');
   event.target.classList.add('active');
   
-  // 切换到统计页时更新数据
   if (pageId === 'pageStats') {
     updateHistoryStats();
   }
@@ -664,7 +598,6 @@ function hideModal(modalId) {
 // ==========================
 // 10. 数据备份/导出/恢复
 // ==========================
-// 备份数据
 function backup() {
   const backupData = {
     mainTags: mainTags,
@@ -683,17 +616,15 @@ function backup() {
   alert('备份成功！');
 }
 
-// 导出CSV
 function exportCSV() {
   const header = '日期,一级标签,二级标签,开始时间,结束时间,时长(秒),时长(格式化)\n';
   let content = header;
   
   records.forEach(rec => {
     const durationFormatted = formatDuration(rec.duration);
-    content += `${rec.date},${rec.mainTagName},${rec.subTagName},${rec.startTime},${rec.endTime},${rec.duration},${durationFormatted}\n`;
+    content += `${rec.date || '未知日期'},${rec.mainTagName || '未知标签'},${rec.subTagName || '未选择'},${rec.startTime || ''},${rec.endTime || ''},${rec.duration || 0},${durationFormatted}\n`;
   });
   
-  // 添加BOM头，解决中文乱码
   const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
   const blob = new Blob([bom, content], { type: 'text/csv;charset=utf-8' });
   const a = document.createElement('a');
@@ -703,7 +634,6 @@ function exportCSV() {
   URL.revokeObjectURL(a.href);
 }
 
-// 恢复数据
 function doRestore(input) {
   const file = input.files[0];
   if (!file) return;
@@ -713,17 +643,14 @@ function doRestore(input) {
     try {
       const data = JSON.parse(e.target.result);
       
-      // 恢复数据
       if (data.mainTags) mainTags = data.mainTags;
       if (data.subTags) subTags = data.subTags;
       if (data.records) records = data.records;
       
-      // 保存到本地
       localStorage.setItem('mainTags', JSON.stringify(mainTags));
       localStorage.setItem('subTags', JSON.stringify(subTags));
       localStorage.setItem('timeRecordsV2', JSON.stringify(records));
       
-      // 重新渲染
       renderMainTags();
       renderMainTagSelect();
       renderMainTagList();
@@ -736,7 +663,6 @@ function doRestore(input) {
       alert('恢复失败：文件格式错误或损坏');
     }
     
-    // 清空文件选择
     input.value = '';
   };
   
@@ -744,18 +670,7 @@ function doRestore(input) {
 }
 
 // ==========================
-// 11. 弹窗显示/隐藏
-// ==========================
-function showModal(modalId) {
-  document.getElementById(modalId).style.display = 'flex';
-}
-
-function hideModal(modalId) {
-  document.getElementById(modalId).style.display = 'none';
-}
-
-// ==========================
-// 12. 页面关闭时保存状态
+// 11. 页面关闭保存
 // ==========================
 window.onbeforeunload = function() {
   saveCurrentState();
