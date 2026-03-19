@@ -15,7 +15,7 @@
             background-color: #f5f5f5;
             padding-bottom: 80px;
         }
-        /* 标题栏样式 */
+        /* 标题栏样式（新增更新按钮） */
         .header {
             background-color: #4169E1;
             color: white;
@@ -24,12 +24,25 @@
             position: relative;
             font-size: 1.2rem;
             font-weight: 600;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        .header .update-btn {
+            position: absolute;
+            left: 20px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            cursor: pointer;
         }
         .header .settings-btn {
             position: absolute;
             right: 20px;
-            top: 50%;
-            transform: translateY(-50%);
             display: flex;
             align-items: center;
             gap: 6px;
@@ -108,6 +121,21 @@
             color: white;
             border-color: #4169E1;
         }
+        /* 计时页今日汇总（即时反馈） */
+        .today-summary {
+            background: white;
+            margin: 10px;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .today-summary h3 {
+            color: #4169E1;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #f0f0f0;
+        }
         /* 统计页面样式 */
         .stats-page {
             padding: 10px;
@@ -126,12 +154,34 @@
             padding-bottom: 8px;
             border-bottom: 1px solid #f0f0f0;
         }
+        /* 统计项样式（支持隐藏删除按钮） */
         .stats-item {
             display: flex;
             justify-content: space-between;
             padding: 6px 0;
             font-size: 0.9rem;
             border-bottom: 1px solid #f8f8f8;
+            position: relative;
+        }
+        /* 隐藏的删除按钮（平时看不到） */
+        .delete-record-btn {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #ff4d4f;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            z-index: 10;
+        }
+        /* 悬停显示删除按钮 */
+        .stats-item:hover .delete-record-btn {
+            display: block;
         }
         /* 统计页数据功能按钮 */
         .data-actions {
@@ -155,10 +205,6 @@
             align-items: center;
             justify-content: center;
             gap: 4px;
-        }
-        .data-btn.danger {
-            border-color: #ff4d4f;
-            color: #ff4d4f;
         }
         /* 底部Tab栏 */
         .tab-bar {
@@ -278,15 +324,16 @@
     </style>
 </head>
 <body>
-    <!-- 标题栏 -->
+    <!-- 标题栏（新增一键更新按钮） -->
     <div class="header">
+        <button class="update-btn" onclick="updateApp()">🔄 更新</button>
         时间记录工具
         <button class="settings-btn" onclick="openSettingsModal()">
             🔧 设置
         </button>
     </div>
 
-    <!-- 计时页面 -->
+    <!-- 计时页面（新增今日实时汇总） -->
     <div class="page active" id="timer-page">
         <!-- 计时区 -->
         <div class="timer-container">
@@ -303,18 +350,19 @@
             <div class="subtag-label">二级明细</div>
             <div class="subtag-buttons" id="subtagButtons"></div>
         </div>
+        
+        <!-- 今日汇总（计时页即时反馈） -->
+        <div class="today-summary">
+            <h3>今日各状态时长（实时）</h3>
+            <div id="today-summary-content"></div>
+        </div>
     </div>
 
-    <!-- 统计页面 -->
+    <!-- 统计页面（汇总整理） -->
     <div class="page" id="stats-page">
         <div class="stats-page">
             <div class="stats-card">
-                <h3>今日统计</h3>
-                <div id="today-stats"></div>
-            </div>
-            
-            <div class="stats-card">
-                <h3>历史记录</h3>
+                <h3>历史每日汇总</h3>
                 <div id="history-stats"></div>
             </div>
             
@@ -324,7 +372,6 @@
                 <button class="data-btn" onclick="backupData()">📤 备份数据</button>
                 <button class="data-btn" onclick="document.getElementById('fileInput').click()">📥 恢复数据</button>
                 <button class="data-btn" onclick="autoSyncData()">📌 自动同步</button>
-                <button class="data-btn danger" onclick="clearTodayRecords()">🗑️ 清空今日</button>
                 <input type="file" accept=".json" id="fileInput" onchange="restoreData(this)">
             </div>
         </div>
@@ -397,9 +444,19 @@
         // 初始化
         window.onload = function() {
             renderMainTags();
-            updateTodayStats();
+            updateTodaySummary(); // 初始化计时页实时汇总
             updateHistoryStats();
+            // 实时更新今日汇总（每秒刷新）
+            setInterval(updateTodaySummary, 1000);
         };
+
+        // 新增：一键更新功能（刷新页面+保留数据）
+        function updateApp() {
+            if (confirm('确定更新吗？当前数据会自动保存')) {
+                // 强制刷新页面，保留localStorage数据
+                window.location.reload(true);
+            }
+        }
 
         // 渲染一级标签
         function renderMainTags() {
@@ -486,7 +543,7 @@
                     });
                     
                     localStorage.setItem('timeRecordsV2', JSON.stringify(records));
-                    updateTodayStats();
+                    updateTodaySummary(); // 更新即时反馈
                     updateHistoryStats();
                     
                     currentTagId = '';
@@ -508,23 +565,35 @@
         function formatDuration(seconds) {
             const h = Math.floor(seconds / 3600);
             const m = Math.floor((seconds % 3600) / 60);
-            return h > 0 ? `${h}小时${m}分钟` : `${m}分钟`;
+            const s = seconds % 60;
+            if (h > 0) return `${h}小时${m}分${s}秒`;
+            if (m > 0) return `${m}分${s}秒`;
+            return `${s}秒`;
         }
 
-        // 更新统计
-        function updateTodayStats() {
+        // 计时页：今日实时汇总（即时反馈核心）
+        function updateTodaySummary() {
             const today = new Date().toISOString().split('T')[0];
             const todayRecords = records.filter(r => r.date === today);
             const summary = {};
             
+            // 汇总已结束的记录
             todayRecords.forEach(r => {
                 const name = r.tagName || getTagNameById(r.tagId);
                 summary[name] = (summary[name] || 0) + r.duration;
             });
             
+            // 加上当前正在计时的时长
+            if (currentTagId) {
+                const currentDuration = Math.floor((Date.now() - startTime) / 1000);
+                const currentTagName = getTagNameById(currentTagId);
+                summary[currentTagName] = (summary[currentTagName] || 0) + currentDuration;
+            }
+            
+            // 渲染到页面
             let html = '';
             if (Object.keys(summary).length === 0) {
-                html = '<div class="stats-item"><span>暂无今日记录</span></div>';
+                html = '<div class="stats-item"><span>今日暂无记录</span></div>';
             } else {
                 Object.keys(summary).forEach(name => {
                     html += `<div class="stats-item">
@@ -533,52 +602,71 @@
                     </div>`;
                 });
             }
-            document.getElementById('today-stats').innerHTML = html;
+            document.getElementById('today-summary-content').innerHTML = html;
         }
 
+        // 统计页：历史每日汇总（汇总整理）
         function updateHistoryStats() {
             const dateGroups = {};
+            // 按日期+标签分组汇总
             records.forEach(r => {
-                if (!dateGroups[r.date]) dateGroups[r.date] = [];
-                dateGroups[r.date].push(r);
+                if (!dateGroups[r.date]) dateGroups[r.date] = { summary: {}, records: {} };
+                const name = r.tagName || getTagNameById(r.tagId);
+                dateGroups[r.date].summary[name] = (dateGroups[r.date].summary[name] || 0) + r.duration;
+                if (!dateGroups[r.date].records[name]) dateGroups[r.date].records[name] = [];
+                dateGroups[r.date].records[name].push(r.id);
             });
             
             let html = '';
-            if (Object.keys(dateGroups).length === 0) {
-                html = '<div class="stats-item"><span>暂无历史记录</span></div>';
-            } else {
-                // 按日期倒序
-                const sortedDates = Object.keys(dateGroups).sort((a, b) => new Date(b) - new Date(a));
-                sortedDates.forEach(date => {
-                    html += `<div class="stats-item"><strong>${date}</strong></div>`;
-                    const daySummary = {};
-                    dateGroups[date].forEach(r => {
-                        const name = r.tagName || getTagNameById(r.tagId);
-                        daySummary[name] = (daySummary[name] || 0) + r.duration;
-                    });
-                    Object.keys(daySummary).forEach(name => {
-                        html += `<div class="stats-item" style="padding-left: 15px;">
-                            <span>${name}</span>
-                            <span>${formatDuration(daySummary[name])}</span>
-                        </div>`;
-                    });
+            const sortedDates = Object.keys(dateGroups).sort((a, b) => new Date(b) - new Date(a));
+            
+            sortedDates.forEach(date => {
+                html += `<div class="stats-item" style="font-weight:bold; color:#222;">${date}</div>`;
+                const dayData = dateGroups[date];
+                Object.keys(dayData.summary).forEach(tagName => {
+                    const recordIds = dayData.records[tagName].join(',');
+                    html += `<div class="stats-item" style="padding-left:16px;" data-record-ids="${recordIds}">
+                        <span>${tagName}</span>
+                        <span>${formatDuration(dayData.summary[tagName])}</span>
+                        <button class="delete-record-btn" onclick="deleteRecordByTag('${tagName}', '${date}')">删除</button>
+                    </div>`;
                 });
+            });
+
+            if (html === '') {
+                html = '<div class="stats-item"><span>暂无历史记录</span></div>';
             }
+
             document.getElementById('history-stats').innerHTML = html;
+        }
+
+        // 隐藏式删除单条记录
+        function deleteRecordByTag(tagName, date) {
+            if (!confirm(`确定删除【${date}】的【${tagName}】记录吗？`)) return;
+            
+            records = records.filter(r => {
+                const rName = r.tagName || getTagNameById(r.tagId);
+                return !(r.date === date && rName === tagName);
+            });
+            
+            localStorage.setItem('timeRecordsV2', JSON.stringify(records));
+            updateTodaySummary();
+            updateHistoryStats();
+            alert('记录已删除');
         }
 
         // 页面切换
         function switchTab(pageId) {
-            stopTimer(); // 切换页面停止计时
+            stopTimer();
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
             event.target.classList.add('active');
             
-            // 切换到统计页时更新数据
             if (pageId === 'stats-page') {
-                updateTodayStats();
                 updateHistoryStats();
+            } else {
+                updateTodaySummary();
             }
         }
 
@@ -586,18 +674,15 @@
         function openSettingsModal() {
             document.getElementById('settingsModal').style.display = 'flex';
         }
-
         function openMainTagManager() {
             closeAllModals();
             document.getElementById('mainTagManagerModal').style.display = 'flex';
             renderMainTagEdit();
         }
-
         function openSubTagManager() {
             closeAllModals();
             document.getElementById('subTagManagerModal').style.display = 'flex';
         }
-
         function closeAllModals() {
             document.querySelectorAll('.modal').forEach(m => m.style.display = 'none');
         }
@@ -606,7 +691,6 @@
         function renderMainTagEdit() {
             const container = document.getElementById('mainTagEditContainer');
             container.innerHTML = '';
-            
             mainTags.forEach((tag, index) => {
                 const item = document.createElement('div');
                 item.className = 'tag-item-edit';
@@ -617,60 +701,44 @@
                 container.appendChild(item);
             });
         }
-
         function addNewMainTag() {
-            const newId = `tag_${Date.now()}`;
-            mainTags.push({ id: newId, name: '新标签' });
+            mainTags.push({ id: `tag_${Date.now()}`, name: '新标签' });
             renderMainTagEdit();
         }
-
         function deleteMainTag(index) {
-            if (confirm('确定删除这个标签吗？相关记录不会被删除')) {
+            if (confirm('确定删除该标签吗？相关记录不会被删除')) {
                 mainTags.splice(index, 1);
                 renderMainTagEdit();
             }
         }
-
         function saveMainTags() {
-            const inputs = document.querySelectorAll('.tag-input');
-            inputs.forEach(input => {
-                const index = parseInt(input.dataset.index);
-                if (mainTags[index] && input.value.trim()) {
-                    mainTags[index].name = input.value.trim();
-                }
+            document.querySelectorAll('.tag-input').forEach(input => {
+                const idx = +input.dataset.index;
+                if (mainTags[idx]) mainTags[idx].name = input.value.trim();
             });
-            
             localStorage.setItem('mainTags', JSON.stringify(mainTags));
             renderMainTags();
+            updateTodaySummary();
             closeAllModals();
             alert('一级标签修改成功！');
         }
 
-        // 数据功能（统计页）
-        // 导出记录（修复中文乱码）
+        // 导出CSV（修复乱码）
         function exportAllRecords() {
             const header = 'ID,一级标签,二级标签,开始时间,结束时间,时长(秒),日期\n';
             let content = header;
-            
             records.forEach(r => {
-                const tagName = r.tagName || getTagNameById(r.tagId);
-                // 转义逗号，避免CSV格式错误
-                const safeTag = tagName.replace(/,/g, '，');
-                const safeSubtag = (r.subtag || '').replace(/,/g, '，');
-                
-                content += `${r.id},${safeTag},${safeSubtag},${r.start},${r.end},${r.duration},${r.date}\n`;
+                const t = (r.tagName || getTagNameById(r.tagId)).replace(/,/g, '，');
+                const s = (r.subtag || '').replace(/,/g, '，');
+                content += `${r.id},${t},${s},${r.start},${r.end},${r.duration},${r.date}\n`;
             });
-            
-            // 添加UTF-8 BOM头，解决Excel中文乱码
             const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
-            const blob = new Blob([bom, content], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            
+            const blob = new Blob([bom, content], { type: 'text/csv;charset=utf-8' });
             const a = document.createElement('a');
-            a.href = url;
+            a.href = URL.createObjectURL(blob);
             a.download = `时间记录_${new Date().toISOString().split('T')[0]}.csv`;
             a.click();
-            URL.revokeObjectURL(url);
+            URL.revokeObjectURL(a.href);
         }
 
         // 备份数据
@@ -707,21 +775,18 @@
                     if (data.mainTags) mainTags = data.mainTags;
                     if (data.subTags) subTags = data.subTags;
                     
-                    // 保存到本地存储
                     localStorage.setItem('timeRecordsV2', JSON.stringify(records));
                     localStorage.setItem('mainTags', JSON.stringify(mainTags));
                     localStorage.setItem('subTags', JSON.stringify(subTags));
                     
-                    // 更新页面
                     renderMainTags();
-                    updateTodayStats();
+                    updateTodaySummary();
                     updateHistoryStats();
                     
                     alert('✅ 数据恢复成功！');
                 } catch (err) {
                     alert('❌ 恢复失败：文件格式错误或损坏');
                 }
-                // 清空input值，允许重复选择同一文件
                 input.value = '';
             };
             reader.readAsText(file);
@@ -729,7 +794,6 @@
 
         // 自动同步数据
         function autoSyncData() {
-            // 扫描所有可能的旧数据键
             const keys = ['timeRecords', 'timeRecordsV2', 'mainTags', 'subTags'];
             let syncCount = 0;
             
@@ -739,7 +803,6 @@
                     try {
                         const parsed = JSON.parse(data);
                         if (key === 'timeRecords' && Array.isArray(parsed)) {
-                            // 兼容旧版timeRecords数据
                             records = parsed;
                             syncCount += parsed.length;
                         } else if (key === 'timeRecordsV2' && Array.isArray(parsed)) {
@@ -756,35 +819,18 @@
                 }
             });
             
-            // 去重记录
             const uniqueRecords = Array.from(new Map(records.map(r => [r.id, r])).values());
             records = uniqueRecords;
             
-            // 保存同步后的数据
             localStorage.setItem('timeRecordsV2', JSON.stringify(records));
             localStorage.setItem('mainTags', JSON.stringify(mainTags));
             localStorage.setItem('subTags', JSON.stringify(subTags));
             
-            // 更新页面
             renderMainTags();
-            updateTodayStats();
+            updateTodaySummary();
             updateHistoryStats();
             
             alert(`✅ 自动同步完成！共恢复 ${uniqueRecords.length} 条记录`);
-        }
-
-        // 清空今日记录
-        function clearTodayRecords() {
-            if (!confirm('确定清空今日所有记录吗？此操作不可恢复！')) return;
-            
-            const today = new Date().toISOString().split('T')[0];
-            records = records.filter(r => r.date !== today);
-            
-            localStorage.setItem('timeRecordsV2', JSON.stringify(records));
-            updateTodayStats();
-            updateHistoryStats();
-            
-            alert('🗑️ 今日记录已清空！');
         }
 
         // 页面关闭/刷新时停止计时
