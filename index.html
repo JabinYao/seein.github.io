@@ -420,10 +420,11 @@
             { name: '社交', subTags: ['家人', '朋友', '线上交流'] },
             { name: '学习', subTags: ['阅读', '课程', '练习'] }
         ];
-        const APP_VERSION = '2026.03.25';
+        const APP_VERSION = '2026.03.26';
         const VERSION_FILE_URL = new URL('version.json', window.location.href).toString();
         const UPDATE_CHECK_INTERVAL = 5 * 60 * 1000;
         const UPDATE_DISMISS_KEY = 'timeTrackerDismissedVersion';
+        const UPDATE_ATTEMPT_KEY = 'timeTrackerUpdateAttempt';
         
         let tagGroups = loadTagGroups();
         
@@ -480,7 +481,8 @@
 
             if (remoteVersion) {
                 const dismissedVersion = localStorage.getItem(UPDATE_DISMISS_KEY);
-                if (dismissedVersion === remoteVersion) {
+                const attemptedVersion = sessionStorage.getItem(UPDATE_ATTEMPT_KEY);
+                if (dismissedVersion === remoteVersion || attemptedVersion === remoteVersion) {
                     return;
                 }
             }
@@ -587,12 +589,61 @@
             });
         }
 
-        window.applyAppUpdate = function() {
+        async function clearRuntimeCaches() {
+            if (!('caches' in window)) return;
+            const cacheKeys = await caches.keys();
+            await Promise.all(cacheKeys.map(cacheKey => caches.delete(cacheKey)));
+        }
+
+        async function hardReloadLatestVersion() {
+            try {
+                await clearRuntimeCaches();
+            } catch (error) {
+                console.error('Clear caches failed:', error);
+            }
+
+            try {
+                if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    await Promise.all(registrations.map(registration => registration.unregister()));
+                }
+            } catch (error) {
+                console.error('Unregister service worker failed:', error);
+            }
+
+            const reloadUrl = new URL(window.location.href);
+            reloadUrl.searchParams.set('update', Date.now().toString());
+            window.location.replace(reloadUrl.toString());
+        }
+
+        window.applyAppUpdate = async function() {
+            const banner = document.getElementById('updateBanner');
+            const remoteVersion = banner ? banner.dataset.remoteVersion : '';
+            if (remoteVersion) {
+                sessionStorage.setItem(UPDATE_ATTEMPT_KEY, remoteVersion);
+            }
+
             if (updateReadyWorker) {
                 updateReadyWorker.postMessage({ type: 'SKIP_WAITING' });
                 return;
             }
-            window.location.reload();
+
+            setCheckUpdateButtonState('升级中...', true);
+            try {
+                if (serviceWorkerRegistration && typeof serviceWorkerRegistration.update === 'function') {
+                    await serviceWorkerRegistration.update();
+                    if (serviceWorkerRegistration.waiting) {
+                        serviceWorkerRegistration.waiting.postMessage({ type: 'SKIP_WAITING' });
+                        return;
+                    }
+                }
+
+                await hardReloadLatestVersion();
+            } catch (error) {
+                console.error('Apply update failed:', error);
+                alert('升级失败，请稍后重试。');
+                setCheckUpdateButtonState('检查更新', false);
+            }
         };
 
         function parseStoredJson(key, fallback) {
