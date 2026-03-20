@@ -426,7 +426,7 @@
             { name: '社交', subTags: ['家人', '朋友', '线上交流'] },
             { name: '学习', subTags: ['阅读', '课程', '练习'] }
         ];
-        const APP_VERSION = '2026.04.02';
+        const APP_VERSION = '2026.04.03';
         const VERSION_FILE_URL = new URL('version.json', window.location.href).toString();
         const UPDATE_CHECK_INTERVAL = 5 * 60 * 1000;
         const UPDATE_DISMISS_KEY = 'timeTrackerDismissedVersion';
@@ -765,7 +765,52 @@
         }
 
         function persistRecords() {
+            timeRecords = normalizeTimeRecords(timeRecords);
             localStorage.setItem('timeRecords', JSON.stringify(timeRecords));
+        }
+
+        function normalizeTimeRecords(records) {
+            const sorted = [...records]
+                .filter(record => record && record.start && record.end)
+                .sort((a, b) => new Date(a.start) - new Date(b.start));
+
+            const merged = [];
+            const MERGE_GAP_MS = 5000;
+
+            sorted.forEach(record => {
+                const normalizedRecord = {
+                    ...record,
+                    category: getPrimaryName(record),
+                    subCategory: getSecondaryName(record),
+                    categoryRenameNote: record.categoryRenameNote || '',
+                    duration: (new Date(record.end) - new Date(record.start)) / 1000
+                };
+
+                if (normalizedRecord.duration <= 0) {
+                    return;
+                }
+
+                const last = merged[merged.length - 1];
+                if (!last) {
+                    merged.push(normalizedRecord);
+                    return;
+                }
+
+                const samePrimary = getPrimaryName(last) === getPrimaryName(normalizedRecord);
+                const sameSecondary = getSecondaryName(last) === getSecondaryName(normalizedRecord);
+                const sameRenameNote = (last.categoryRenameNote || '') === (normalizedRecord.categoryRenameNote || '');
+                const gapMs = new Date(normalizedRecord.start) - new Date(last.end);
+
+                if (samePrimary && sameSecondary && sameRenameNote && gapMs >= 0 && gapMs <= MERGE_GAP_MS) {
+                    last.end = normalizedRecord.end;
+                    last.duration = (new Date(last.end) - new Date(last.start)) / 1000;
+                    return;
+                }
+
+                merged.push(normalizedRecord);
+            });
+
+            return merged;
         }
 
         function persistTags() {
@@ -982,6 +1027,8 @@
         }
 
         function init() {
+            timeRecords = normalizeTimeRecords(timeRecords);
+            persistRecords();
             updateVersionLabel();
             renderStatusButtons();
             updateStatusSelectOptions();
