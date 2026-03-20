@@ -426,7 +426,7 @@
             { name: '社交', subTags: ['家人', '朋友', '线上交流'] },
             { name: '学习', subTags: ['阅读', '课程', '练习'] }
         ];
-        const APP_VERSION = '2026.04.03';
+        const APP_VERSION = '2026.04.04';
         const VERSION_FILE_URL = new URL('version.json', window.location.href).toString();
         const UPDATE_CHECK_INTERVAL = 5 * 60 * 1000;
         const UPDATE_DISMISS_KEY = 'timeTrackerDismissedVersion';
@@ -1238,6 +1238,18 @@
             panel.classList.remove('hidden');
         }
 
+        function clearPrimaryPendingState(primaryStatus) {
+            if (pendingPrimaryStatus === primaryStatus) {
+                pendingPrimaryStatus = '';
+            }
+            if (currentStatus === primaryStatus && !getTagGroupByName(primaryStatus)?.subTags?.length) {
+                currentSubStatus = '';
+                const statusEl = document.getElementById('currentStatus');
+                if (statusEl) statusEl.textContent = getCurrentStatusLabel() || primaryStatus || '未开始';
+                syncRunningState();
+            }
+        }
+
         function updateStatusSelectOptions() {
             const sel = document.getElementById('statusSelect');
             const subSel = document.getElementById('subStatusSelect');
@@ -1285,6 +1297,10 @@
                 return;
             }
             pendingPrimaryStatus = '';
+            if (currentStatus === status) {
+                currentSubStatus = '';
+            }
+            renderSubStatusButtons('');
             changeStatus(status, '');
         }
 
@@ -1664,9 +1680,10 @@
             group.subTags.splice(subIndex, 1);
             persistTags();
             openTagManager();
+            clearPrimaryPendingState(group.name);
             renderStatusButtons();
             updateStatusSelectOptions();
-            if (currentStatus === group.name) {
+            if (currentStatus === group.name || pendingPrimaryStatus === group.name) {
                 if (currentSubStatus === subTagName) {
                     currentSubStatus = '';
                 }
@@ -1674,6 +1691,9 @@
                 if (statusEl) statusEl.textContent = getCurrentStatusLabel() || '未开始';
                 renderSubStatusButtons(group.name);
                 highlightStatus(currentStatus, currentSubStatus);
+                if (!group.subTags.length) {
+                    renderSubStatusButtons('');
+                }
             }
         };
 
