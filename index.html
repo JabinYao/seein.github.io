@@ -417,6 +417,7 @@
         let currentRange = 'day';
         let currentChartType = 'bar';
         let expandedSummaryGroups = new Set();
+        let lastCheckpointAt = 0;
         
         const DEFAULT_TAG_GROUPS = [
             { name: '工作', subTags: ['深度工作', '会议', '沟通', '杂务'] },
@@ -425,7 +426,7 @@
             { name: '社交', subTags: ['家人', '朋友', '线上交流'] },
             { name: '学习', subTags: ['阅读', '课程', '练习'] }
         ];
-        const APP_VERSION = '2026.04.01';
+        const APP_VERSION = '2026.04.02';
         const VERSION_FILE_URL = new URL('version.json', window.location.href).toString();
         const UPDATE_CHECK_INTERVAL = 5 * 60 * 1000;
         const UPDATE_DISMISS_KEY = 'timeTrackerDismissedVersion';
@@ -606,6 +607,7 @@
 
         async function hardReloadLatestVersion() {
             try {
+                checkpointRunningRecord(new Date());
                 await clearRuntimeCaches();
             } catch (error) {
                 console.error('Clear caches failed:', error);
@@ -939,6 +941,46 @@
             localStorage.removeItem(BACKGROUND_DATE_KEY);
         }
 
+        function finalizeCurrentRecord(endTime = new Date(), options = {}) {
+            if (!startTime || !currentStatus) return false;
+            const { refresh = false, restartFromEnd = false } = options;
+            if (endTime <= startTime) return false;
+
+            saveRecord(currentStatus, startTime, endTime, {
+                refresh,
+                subCategory: currentSubStatus || ''
+            });
+
+            if (restartFromEnd) {
+                startTime = new Date(endTime);
+                sessionDateStr = getTodayDateString();
+                syncRunningState();
+            }
+
+            return true;
+        }
+
+        function checkpointRunningRecord(now = new Date()) {
+            if (!startTime || !currentStatus) {
+                syncRunningState();
+                return;
+            }
+
+            const nowMs = now.getTime();
+            if (nowMs - lastCheckpointAt < 500) {
+                syncRunningState();
+                return;
+            }
+
+            if (now <= startTime) {
+                syncRunningState();
+                return;
+            }
+
+            lastCheckpointAt = nowMs;
+            finalizeCurrentRecord(now, { refresh: false, restartFromEnd: true });
+        }
+
         function init() {
             updateVersionLabel();
             renderStatusButtons();
@@ -1070,7 +1112,7 @@
             endOfYesterday.setHours(0, 0, 0, 0);
             endOfYesterday.setMilliseconds(-1);
             if (endOfYesterday > startTime) {
-                saveRecord(currentStatus, startTime, endOfYesterday, { refresh: false });
+                finalizeCurrentRecord(endOfYesterday, { refresh: false });
             }
             const startOfToday = new Date(now);
             startOfToday.setHours(0, 0, 0, 0);
@@ -1204,9 +1246,7 @@
                 if (status === currentStatus && subStatus === currentSubStatus && startTime) {
                     return;
                 }
-                if (startTime && currentStatus) {
-                    saveRecord(currentStatus, startTime, new Date(), { refresh: false });
-                }
+                finalizeCurrentRecord(new Date(), { refresh: false });
                 currentStatus = status;
                 currentSubStatus = subStatus || '';
                 pendingPrimaryStatus = '';
@@ -1631,13 +1671,19 @@
         }
 
         window.exportToCSV = function() {
-            if (timeRecords.length === 0) {
+            const exportRecords = [...timeRecords];
+            const activeRecord = getActiveRecord();
+            if (activeRecord) {
+                exportRecords.push(activeRecord);
+            }
+
+            if (exportRecords.length === 0) {
                 alert('No data to export');
                 return;
             }
             let csvContent = 'data:text/csv;charset=utf-8,\uFEFF';
             csvContent += 'Primary Category,Secondary Category,Legacy Category Note,Start Time,End Time,Duration Seconds,Duration Formatted\n';
-            const sortedRecords = [...timeRecords].sort((a, b) => new Date(a.start) - new Date(b.start));
+            const sortedRecords = exportRecords.sort((a, b) => new Date(a.start) - new Date(b.start));
             sortedRecords.forEach(function(row) {
                 const startDate = new Date(row.start);
                 const endDate = new Date(row.end);
@@ -1742,12 +1788,12 @@
 
         document.addEventListener('visibilitychange', () => {
             if (document.visibilityState === 'hidden') {
-                syncRunningState();
+                checkpointRunningRecord(new Date());
             }
         });
 
         window.addEventListener('beforeunload', () => {
-            syncRunningState();
+            checkpointRunningRecord(new Date());
         });
     </script>
 </body>
