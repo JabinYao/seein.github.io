@@ -409,6 +409,7 @@
         let currentStatus = '';
         let currentSubStatus = '';
         let pendingPrimaryStatus = '';
+        let primarySelectedAt = 0;
         let timeRecords = parseStoredJson('timeRecords', []);
         let timerInterval = null;
         let realTimeInterval = null;
@@ -426,11 +427,12 @@
             { name: '社交', subTags: ['家人', '朋友', '线上交流'] },
             { name: '学习', subTags: ['阅读', '课程', '练习'] }
         ];
-        const APP_VERSION = '2026.04.04';
+        const APP_VERSION = '2026.04.05';
         const VERSION_FILE_URL = new URL('version.json', window.location.href).toString();
         const UPDATE_CHECK_INTERVAL = 5 * 60 * 1000;
         const UPDATE_DISMISS_KEY = 'timeTrackerDismissedVersion';
         const UPDATE_ATTEMPT_KEY = 'timeTrackerUpdateAttempt';
+        const SUBCATEGORY_GRACE_MS = 5000;
         
         let tagGroups = loadTagGroups();
         
@@ -976,7 +978,8 @@
                 localStorage.setItem(BACKGROUND_START_KEY, startTime.toISOString());
                 localStorage.setItem(BACKGROUND_STATUS_KEY, JSON.stringify({
                     category: currentStatus,
-                    subCategory: currentSubStatus || ''
+                    subCategory: currentSubStatus || '',
+                    selectedAt: primarySelectedAt || 0
                 }));
                 localStorage.setItem(BACKGROUND_DATE_KEY, sessionDateStr);
                 return;
@@ -999,6 +1002,9 @@
             if (restartFromEnd) {
                 startTime = new Date(endTime);
                 sessionDateStr = getTodayDateString();
+                if (currentSubStatus) {
+                    primarySelectedAt = startTime.getTime();
+                }
                 syncRunningState();
             }
 
@@ -1067,6 +1073,7 @@
             const todayStr = getTodayDateString();
             let bgStatus = '';
             let bgSubStatus = '';
+            let bgSelectedAt = 0;
 
             if (bgStatusRaw) {
                 try {
@@ -1074,6 +1081,7 @@
                     if (parsedStatus && typeof parsedStatus === 'object') {
                         bgStatus = parsedStatus.category || parsedStatus.status || '';
                         bgSubStatus = parsedStatus.subCategory || '';
+                        bgSelectedAt = Number(parsedStatus.selectedAt || 0);
                     } else {
                         bgStatus = String(parsedStatus || '');
                     }
@@ -1096,10 +1104,12 @@
                     startTime = todayStart;
                     currentStatus = bgStatus;
                     currentSubStatus = bgSubStatus;
+                    primarySelectedAt = todayStart.getTime();
                 } else {
                     startTime = startObj;
                     currentStatus = bgStatus;
                     currentSubStatus = bgSubStatus;
+                    primarySelectedAt = bgSelectedAt || startObj.getTime();
                 }
 
                 const statusEl = document.getElementById('currentStatus');
@@ -1191,7 +1201,7 @@
             const container = document.getElementById('statusButtons');
             if(!container) return;
             container.innerHTML = '';
-            const activePrimary = pendingPrimaryStatus || currentStatus;
+            const activePrimary = currentStatus;
             
             tagGroups.forEach(group => {
                 const btn = document.createElement('button');
@@ -1228,7 +1238,7 @@
                 btn.className = 'sub-status-btn';
                 btn.dataset.subStatus = subTag;
                 btn.textContent = subTag;
-                btn.onclick = () => changeStatus(primaryStatus, subTag);
+                btn.onclick = () => applySubStatus(primaryStatus, subTag);
                 if (subTag === currentSubStatus && currentStatus === primaryStatus) {
                     btn.classList.add('active');
                 }
@@ -1244,6 +1254,7 @@
             }
             if (currentStatus === primaryStatus && !getTagGroupByName(primaryStatus)?.subTags?.length) {
                 currentSubStatus = '';
+                primarySelectedAt = startTime ? startTime.getTime() : Date.now();
                 const statusEl = document.getElementById('currentStatus');
                 if (statusEl) statusEl.textContent = getCurrentStatusLabel() || primaryStatus || '未开始';
                 syncRunningState();
@@ -1287,21 +1298,35 @@
         window.selectPrimaryStatus = function(status) {
             const group = getTagGroupByName(status);
             const hasSubTags = group && Array.isArray(group.subTags) && group.subTags.length > 0;
-            if (hasSubTags) {
-                pendingPrimaryStatus = status;
-                const statusEl = document.getElementById('currentStatus');
-                if (statusEl) statusEl.textContent = `${status} / 待选择二级标签`;
-                highlightStatus(status, '');
-                renderSubStatusButtons(status);
+            const now = new Date();
+
+            if (currentStatus === status && startTime) {
+                if (!currentSubStatus) {
+                    primarySelectedAt = primarySelectedAt || startTime.getTime();
+                }
+                renderSubStatusButtons(hasSubTags ? status : '');
                 renderStatusButtons();
                 return;
             }
+
+            finalizeCurrentRecord(now, { refresh: false });
+            currentStatus = status;
+            currentSubStatus = '';
             pendingPrimaryStatus = '';
-            if (currentStatus === status) {
-                currentSubStatus = '';
-            }
-            renderSubStatusButtons('');
-            changeStatus(status, '');
+            startTime = now;
+            primarySelectedAt = now.getTime();
+            sessionDateStr = getTodayDateString();
+
+            const statusEl = document.getElementById('currentStatus');
+            const timerEl = document.getElementById('timer');
+            if (statusEl) statusEl.textContent = getCurrentStatusLabel();
+            if (timerEl) timerEl.textContent = '00:00:00';
+
+            highlightStatus(status, '');
+            renderSubStatusButtons(hasSubTags ? status : '');
+            renderStatusButtons();
+            syncRunningState();
+            loadTodayRecords();
         }
 
         window.changeStatus = function(status, subStatus = '') {
@@ -1314,6 +1339,7 @@
                 currentSubStatus = subStatus || '';
                 pendingPrimaryStatus = '';
                 startTime = new Date();
+                primarySelectedAt = startTime.getTime();
                 sessionDateStr = getTodayDateString();
                 
                 const statusEl = document.getElementById('currentStatus');
@@ -1328,6 +1354,38 @@
             } catch (e) {
                 console.error('Change status error:', e);
                 alert('Failed to switch status');
+            }
+        };
+
+        window.applySubStatus = function(primaryStatus, subStatus) {
+            try {
+                const now = new Date();
+                if (!startTime || currentStatus !== primaryStatus) {
+                    changeStatus(primaryStatus, subStatus);
+                    return;
+                }
+                if (currentSubStatus === subStatus) {
+                    return;
+                }
+
+                const selectedAt = primarySelectedAt || startTime.getTime();
+                const withinGrace = !currentSubStatus && (now.getTime() - selectedAt) <= SUBCATEGORY_GRACE_MS;
+
+                if (withinGrace) {
+                    currentSubStatus = subStatus;
+                    const statusEl = document.getElementById('currentStatus');
+                    if (statusEl) statusEl.textContent = getCurrentStatusLabel();
+                    highlightStatus(primaryStatus, currentSubStatus);
+                    renderSubStatusButtons(primaryStatus);
+                    syncRunningState();
+                    loadTodayRecords();
+                    return;
+                }
+
+                changeStatus(primaryStatus, subStatus);
+            } catch (e) {
+                console.error('Apply sub status error:', e);
+                alert('Failed to set sub status');
             }
         };
 
