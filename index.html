@@ -69,7 +69,9 @@
         .card { background: var(--card-bg); border-radius: 24px; padding: 20px; box-shadow: 0 20px 50px rgba(15,23,42,0.08); margin-bottom: 20px; }
         .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px solid #F3F4F6; padding-bottom: 8px; }
         .card-header h2 { font-size: 1.2rem; color: var(--text); margin: 0; }
+        .header-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
         .btn-export { background: var(--success); color: white; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+        .btn-export.secondary { background: #EEF2FF; color: var(--primary); border: 1px solid #C7D2FE; }
         .btn-export:active { opacity: 0.8; }
         .summary-accordion { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
         .summary-group { border: 1px solid #E5E7EB; border-radius: 16px; overflow: hidden; background: linear-gradient(180deg, #FFFFFF 0%, #FAFBFF 100%); }
@@ -312,6 +314,11 @@
                         <span>📥</span> 导出 CSV
                     </button>
                 </div>
+                <div class="header-actions" style="margin-bottom:12px;">
+                    <button class="btn-export secondary" onclick="exportDebugData()">
+                        <span>🧪</span> 导出调试 JSON
+                    </button>
+                </div>
                 <div class="history-controls">
                     <select class="range-select" id="rangeSelect">
                         <option value="day">今日</option>
@@ -427,7 +434,7 @@
             { name: '社交', subTags: ['家人', '朋友', '线上交流'] },
             { name: '学习', subTags: ['阅读', '课程', '练习'] }
         ];
-        const APP_VERSION = '2026.04.06';
+        const APP_VERSION = '2026.04.08';
         const VERSION_FILE_URL = new URL('version.json', window.location.href).toString();
         const UPDATE_CHECK_INTERVAL = 5 * 60 * 1000;
         const UPDATE_DISMISS_KEY = 'timeTrackerDismissedVersion';
@@ -985,15 +992,17 @@
 
         function getTodayRecords() {
             const { start, end } = getTodayBounds();
-            const savedRecords = timeRecords.filter(record => {
-                const recordStart = new Date(record.start);
-                return recordStart >= start && recordStart < end;
-            });
+            const scopedRecords = timeRecords
+                .map(record => buildRecordInRange(record, start, end))
+                .filter(Boolean);
             const activeRecord = getActiveRecord();
-            if (activeRecord && new Date(activeRecord.start) >= start) {
-                savedRecords.push(activeRecord);
+            if (activeRecord) {
+                const scopedActive = buildRecordInRange(activeRecord, start, end);
+                if (scopedActive) {
+                    scopedRecords.push(scopedActive);
+                }
             }
-            return savedRecords;
+            return scopedRecords.sort((a, b) => new Date(b.start) - new Date(a.start));
         }
 
         function syncRunningState() {
@@ -1815,6 +1824,18 @@
             return `"${String(value).replace(/"/g, '""')}"`;
         }
 
+        function downloadTextFile(content, mimeType, filename) {
+            const blob = new Blob([content], { type: mimeType });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
         window.exportToCSV = function() {
             const exportRecords = [...timeRecords];
             const activeRecord = getActiveRecord();
@@ -1844,14 +1865,35 @@
                 ].join(',');
                 csvContent += rowStr + '\n';
             });
-            const encodedUri = encodeURI(csvContent);
-            const link = document.createElement('a');
             const dateStr = new Date().toISOString().slice(0,10).replace(/-/g,'');
-            link.setAttribute('href', encodedUri);
-            link.setAttribute('download', `time-records_${dateStr}.csv`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+            downloadTextFile(
+                decodeURIComponent(csvContent.replace('data:text/csv;charset=utf-8,\uFEFF', '\uFEFF')),
+                'text/csv;charset=utf-8',
+                `time-records_${dateStr}.csv`
+            );
+        };
+
+        window.exportDebugData = function() {
+            const snapshot = {
+                exportedAt: new Date().toISOString(),
+                appVersion: APP_VERSION,
+                currentStatus,
+                currentSubStatus,
+                pendingPrimaryStatus,
+                primarySelectedAt,
+                sessionDateStr,
+                bgStartTime: localStorage.getItem(BACKGROUND_START_KEY),
+                bgStatus: localStorage.getItem(BACKGROUND_STATUS_KEY),
+                bgSessionDate: localStorage.getItem(BACKGROUND_DATE_KEY),
+                activeRecord: getActiveRecord(),
+                timeRecords
+            };
+            const dateStr = new Date().toISOString().slice(0,10).replace(/-/g,'');
+            downloadTextFile(
+                JSON.stringify(snapshot, null, 2),
+                'application/json;charset=utf-8',
+                `time-tracker-debug_${dateStr}.json`
+            );
         };
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('manualForm');
