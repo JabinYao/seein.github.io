@@ -427,7 +427,7 @@
             { name: '社交', subTags: ['家人', '朋友', '线上交流'] },
             { name: '学习', subTags: ['阅读', '课程', '练习'] }
         ];
-        const APP_VERSION = '2026.04.05';
+        const APP_VERSION = '2026.04.06';
         const VERSION_FILE_URL = new URL('version.json', window.location.href).toString();
         const UPDATE_CHECK_INTERVAL = 5 * 60 * 1000;
         const UPDATE_DISMISS_KEY = 'timeTrackerDismissedVersion';
@@ -764,6 +764,29 @@
 
         function getCurrentStatusLabel() {
             return currentSubStatus ? `${currentStatus} / ${currentSubStatus}` : currentStatus;
+        }
+
+        function isPendingPrimarySelectionActive(primaryStatus = currentStatus) {
+            if (!primaryStatus || pendingPrimaryStatus !== primaryStatus || currentSubStatus) {
+                return false;
+            }
+            const selectedAt = primarySelectedAt || (startTime ? startTime.getTime() : 0);
+            if (!selectedAt) {
+                return false;
+            }
+            return (Date.now() - selectedAt) <= SUBCATEGORY_GRACE_MS;
+        }
+
+        function syncCurrentStatusDisplay() {
+            const statusEl = document.getElementById('currentStatus');
+            if (!statusEl) return;
+            if (!currentStatus) {
+                statusEl.textContent = '未开始';
+                return;
+            }
+            statusEl.textContent = isPendingPrimarySelectionActive()
+                ? `${currentStatus} / 待选择二级标签`
+                : getCurrentStatusLabel();
         }
 
         function persistRecords() {
@@ -1174,6 +1197,10 @@
             const startOfToday = new Date(now);
             startOfToday.setHours(0, 0, 0, 0);
             startTime = startOfToday;
+            primarySelectedAt = startOfToday.getTime();
+            if (currentSubStatus) {
+                pendingPrimaryStatus = '';
+            }
             sessionDateStr = getTodayDateString();
             console.log('Auto day change handled.');
         }
@@ -1184,6 +1211,11 @@
             if (!startTime || !currentStatus) {
                 timerEl.textContent = '00:00:00';
                 return;
+            }
+            if (pendingPrimaryStatus && !isPendingPrimarySelectionActive()) {
+                pendingPrimaryStatus = '';
+                syncCurrentStatusDisplay();
+                syncRunningState();
             }
             const elapsed = Math.floor((new Date() - startTime) / 1000);
             timerEl.textContent = formatDuration(elapsed);
@@ -1255,8 +1287,7 @@
             if (currentStatus === primaryStatus && !getTagGroupByName(primaryStatus)?.subTags?.length) {
                 currentSubStatus = '';
                 primarySelectedAt = startTime ? startTime.getTime() : Date.now();
-                const statusEl = document.getElementById('currentStatus');
-                if (statusEl) statusEl.textContent = getCurrentStatusLabel() || primaryStatus || '未开始';
+                syncCurrentStatusDisplay();
                 syncRunningState();
             }
         }
@@ -1300,26 +1331,16 @@
             const hasSubTags = group && Array.isArray(group.subTags) && group.subTags.length > 0;
             const now = new Date();
 
-            if (currentStatus === status && startTime) {
-                if (!currentSubStatus) {
-                    primarySelectedAt = primarySelectedAt || startTime.getTime();
-                }
-                renderSubStatusButtons(hasSubTags ? status : '');
-                renderStatusButtons();
-                return;
-            }
-
             finalizeCurrentRecord(now, { refresh: false });
             currentStatus = status;
             currentSubStatus = '';
-            pendingPrimaryStatus = '';
+            pendingPrimaryStatus = hasSubTags ? status : '';
             startTime = now;
             primarySelectedAt = now.getTime();
             sessionDateStr = getTodayDateString();
 
-            const statusEl = document.getElementById('currentStatus');
             const timerEl = document.getElementById('timer');
-            if (statusEl) statusEl.textContent = getCurrentStatusLabel();
+            syncCurrentStatusDisplay();
             if (timerEl) timerEl.textContent = '00:00:00';
 
             highlightStatus(status, '');
@@ -1342,9 +1363,8 @@
                 primarySelectedAt = startTime.getTime();
                 sessionDateStr = getTodayDateString();
                 
-                const statusEl = document.getElementById('currentStatus');
                 const timerEl = document.getElementById('timer');
-                if(statusEl) statusEl.textContent = getCurrentStatusLabel();
+                syncCurrentStatusDisplay();
                 if(timerEl) timerEl.textContent = '00:00:00';
                 
                 highlightStatus(status, currentSubStatus);
@@ -1373,8 +1393,8 @@
 
                 if (withinGrace) {
                     currentSubStatus = subStatus;
-                    const statusEl = document.getElementById('currentStatus');
-                    if (statusEl) statusEl.textContent = getCurrentStatusLabel();
+                    pendingPrimaryStatus = '';
+                    syncCurrentStatusDisplay();
                     highlightStatus(primaryStatus, currentSubStatus);
                     renderSubStatusButtons(primaryStatus);
                     syncRunningState();
