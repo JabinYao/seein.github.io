@@ -318,6 +318,9 @@
                     <button class="btn-export secondary" onclick="exportDebugData()">
                         <span>🧪</span> 导出调试 JSON
                     </button>
+                    <button class="btn-export secondary" onclick="triggerImportData()">
+                        <span>📂</span> 导入数据
+                    </button>
                 </div>
                 <div class="history-controls">
                     <select class="range-select" id="rangeSelect">
@@ -380,6 +383,8 @@
         </div>
     </div>
 
+    <input type="file" id="importDataInput" accept=".json,application/json" style="display:none;">
+
     <div class="toolbar">
         <button class="tool-btn active" onclick="switchView('timer')" id="nav-timer"><span class="icon">⏱️</span><span>计时面板</span></button>
         <button class="tool-btn" onclick="switchView('history')" id="nav-history"><span class="icon">📊</span><span>统计分析</span></button>
@@ -434,7 +439,7 @@
             { name: '社交', subTags: ['家人', '朋友', '线上交流'] },
             { name: '学习', subTags: ['阅读', '课程', '练习'] }
         ];
-        const APP_VERSION = '2026.04.08';
+        const APP_VERSION = '2026.04.09';
         const VERSION_FILE_URL = new URL('version.json', window.location.href).toString();
         const UPDATE_CHECK_INTERVAL = 5 * 60 * 1000;
         const UPDATE_DISMISS_KEY = 'timeTrackerDismissedVersion';
@@ -1836,6 +1841,82 @@
             URL.revokeObjectURL(url);
         }
 
+        function dedupeRecords(records) {
+            const seen = new Set();
+            return records.filter(record => {
+                if (!record || !record.start || !record.end) {
+                    return false;
+                }
+                const key = [
+                    getPrimaryName(record),
+                    getSecondaryName(record),
+                    record.start,
+                    record.end,
+                    record.categoryRenameNote || ''
+                ].join('|');
+                if (seen.has(key)) {
+                    return false;
+                }
+                seen.add(key);
+                return true;
+            });
+        }
+
+        function mergeTagGroups(currentGroups, importedGroups) {
+            const mergedMap = new Map();
+            normalizeTagGroups(currentGroups).forEach(group => {
+                mergedMap.set(group.name, {
+                    name: group.name,
+                    subTags: [...(group.subTags || [])]
+                });
+            });
+            normalizeTagGroups(importedGroups).forEach(group => {
+                const existing = mergedMap.get(group.name);
+                if (!existing) {
+                    mergedMap.set(group.name, {
+                        name: group.name,
+                        subTags: [...(group.subTags || [])]
+                    });
+                    return;
+                }
+                existing.subTags = Array.from(new Set([...(existing.subTags || []), ...(group.subTags || [])]));
+            });
+            return Array.from(mergedMap.values());
+        }
+
+        function importSnapshotData(snapshot) {
+            const importedRecordsRaw = Array.isArray(snapshot)
+                ? snapshot
+                : Array.isArray(snapshot?.timeRecords)
+                    ? snapshot.timeRecords
+                    : null;
+            if (!importedRecordsRaw) {
+                throw new Error('导入文件里没有可识别的 timeRecords 数据。');
+            }
+
+            const normalizedImportedRecords = normalizeTimeRecords(importedRecordsRaw);
+            const mergedRecords = normalizeTimeRecords(dedupeRecords([...timeRecords, ...normalizedImportedRecords]));
+            const importedCount = normalizedImportedRecords.length;
+            const addedCount = Math.max(0, mergedRecords.length - timeRecords.length);
+
+            timeRecords = mergedRecords;
+            persistRecords();
+
+            if (snapshot && Array.isArray(snapshot.tagGroups)) {
+                tagGroups = mergeTagGroups(tagGroups, snapshot.tagGroups);
+                persistTags();
+                renderStatusButtons();
+                updateStatusSelectOptions();
+                if (currentStatus) {
+                    renderSubStatusButtons(currentStatus);
+                    highlightStatus(currentStatus, currentSubStatus);
+                }
+            }
+
+            loadTodayRecords();
+            return { importedCount, addedCount };
+        }
+
         window.exportToCSV = function() {
             const exportRecords = [...timeRecords];
             const activeRecord = getActiveRecord();
@@ -1886,6 +1967,7 @@
                 bgStatus: localStorage.getItem(BACKGROUND_STATUS_KEY),
                 bgSessionDate: localStorage.getItem(BACKGROUND_DATE_KEY),
                 activeRecord: getActiveRecord(),
+                tagGroups,
                 timeRecords
             };
             const dateStr = new Date().toISOString().slice(0,10).replace(/-/g,'');
@@ -1895,10 +1977,17 @@
                 `time-tracker-debug_${dateStr}.json`
             );
         };
+        window.triggerImportData = function() {
+            const input = document.getElementById('importDataInput');
+            if (!input) return;
+            input.value = '';
+            input.click();
+        };
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('manualForm');
             const statusSelect = document.getElementById('statusSelect');
             const rangeSelect = document.getElementById('rangeSelect');
+            const importInput = document.getElementById('importDataInput');
             if (statusSelect) {
                 statusSelect.addEventListener('change', function() {
                     updateSubStatusSelectOptions(this.value);
@@ -1908,6 +1997,31 @@
                 rangeSelect.addEventListener('change', function() {
                     currentRange = this.value;
                     updateHistory(getRecordsForRange(currentRange));
+                });
+            }
+            if (importInput) {
+                importInput.addEventListener('change', function(event) {
+                    const file = event.target.files && event.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = function(loadEvent) {
+                        try {
+                            const content = String(loadEvent.target?.result || '');
+                            const parsed = JSON.parse(content);
+                            const { importedCount, addedCount } = importSnapshotData(parsed);
+                            alert(`导入完成：识别 ${importedCount} 条记录，新增 ${addedCount} 条。`);
+                        } catch (error) {
+                            console.error('Import data failed:', error);
+                            alert(`导入失败：${error.message || '文件格式不正确'}`);
+                        } finally {
+                            importInput.value = '';
+                        }
+                    };
+                    reader.onerror = function() {
+                        alert('导入失败：文件读取失败。');
+                        importInput.value = '';
+                    };
+                    reader.readAsText(file, 'utf-8');
                 });
             }
             if(form) {
